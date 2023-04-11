@@ -14,8 +14,22 @@ int filtro = 4;
 GLfloat fAspect;
 GLfloat ang_cam = 60;
 
+// Variaveis para controle da porta
+#define ANGLE_DOOR_MAX 90
+GLfloat x_trans_angle = 0.430, angle_door = 0;
+
+// Variaveis para controle da janela
+#define ANGLEE_WINDOW_MAX -180
+#define ANGLED_WINDOW_MAX 180
+GLfloat xE_trans_angle = 0.430, xD_trans_angle = -0.430, angleE_window = 0, angleD_window = 0;
+
+// Variaveis para controle da hélice
+GLfloat angulo;
+GLfloat sentido = 1;
+
 // Objetos
-OBJ *plano, *mesa, *porta, *janela, *lamp, *monitor, *teclado, *mouse, *cadeira, *interruptor, *lousa, *lixeira;
+OBJ *plano, *mesa, *porta, *janela, *lamp, *monitor, *teclado, *mouse, *cadeira, *interruptor, *lousa, *lixeira,
+*base, *helice;
 
 // Luminosidade base de uma lampada
 #define LOW 0.3
@@ -46,30 +60,15 @@ int x_ini, y_ini, bot;
 void DesenhaParedes(void)
 {
 	// Insere a matriz de transformação corrente na pilha
-	// Parede dos fundos
-	glPushMatrix();
-	glTranslatef(0, 150, -400);
-	glScalef(6, 3, 1);
-	glColor3f(0.85, 0.85, 0.85);
-	DesenhaObjeto(plano);
-
-	// Retira a matriz do topo da pilha e torna esta última a matriz de transformação corrente
-	glPopMatrix();
-
-	// Parede da frente
-	glPushMatrix();
-	glTranslatef(0, 150, 400);
-	glRotatef(180, 0, 1, 0);
-	glScalef(6, 3, 1);
-	DesenhaObjeto(plano);
-	glPopMatrix();
-
 	// Parede esquerda
 	glPushMatrix();
 	glTranslatef(300, 150, 0);
 	glRotatef(-90, 0, 1, 0);
+	glColor3f(0.85, 0.85, 0.85);
 	glScalef(8, 3, 1);
 	DesenhaObjeto(plano);
+
+	// Retira a matriz do topo da pilha e torna esta última a matriz de transformação corrente
 	glPopMatrix();
 
 	// Parede direita
@@ -79,6 +78,65 @@ void DesenhaParedes(void)
 	glScalef(8, 3, 1); // 8 m x 75 cm
 	DesenhaObjeto(plano);
 	glPopMatrix();
+
+	// Parede superior dos fundos
+	glPushMatrix();
+	glTranslatef(0, 274.5, -400);
+	glScalef(6, 0.52, 1);
+	DesenhaObjeto(plano);
+	glPopMatrix();
+
+	// Parede inferior dos fundos
+	glPushMatrix();
+	glTranslatef(0, 65.5, -400);
+	glScalef(6, 1.315, 1);
+	DesenhaObjeto(plano);
+	glPopMatrix();
+
+	// Parede do meio dos fundos
+	glPushMatrix();
+	glTranslatef(0, 190, -400);
+	glScalef(1.69, 1.2, 1);
+	DesenhaObjeto(plano);
+	glPopMatrix();
+
+	// Parede direita dos fundos
+	glPushMatrix();
+	glTranslatef(243, 190, -400);
+	glScalef(1.14, 1.2, 1);
+	DesenhaObjeto(plano);
+	glPopMatrix();
+
+	// Parede esquerda dos fundos
+	glPushMatrix();
+	glTranslatef(-243, 190, -400);
+	glScalef(1.14, 1.2, 1);
+	DesenhaObjeto(plano);
+	glPopMatrix();
+
+	// Parte superior da frente
+	glPushMatrix();
+	glTranslatef(0,250,400);
+	glRotatef(180,0,1,0);
+	glScalef(6,1,1);
+	DesenhaObjeto(plano);
+	glPopMatrix();
+
+	// Parte esquerda da frente
+	glPushMatrix();
+	glTranslatef(87.5,100,400);
+	glRotatef(180,0,1,0);
+	glScalef(4.25,2,1);
+	DesenhaObjeto(plano);
+	glPopMatrix();
+
+	// Parte direita da frente
+	glPushMatrix();
+	glTranslatef(-257,100,400);
+	glRotatef(180,0,1,0);
+	glScalef(0.86,2,1);
+	DesenhaObjeto(plano);
+	glPopMatrix();
 }
 
 void DesenhaPorta()
@@ -86,11 +144,108 @@ void DesenhaPorta()
 	// Desenha a porta
 	glPushMatrix();
 	glTranslatef(-170, 0, 397.5);
-	glRotatef(-180, 0, 1, 0);
-	glScalef(110, 110, 100);
-	glColor3f(0.75, 0.75, 0.75);
+	glScalef(100, 100, 100);
+	glRotatef(-180,0,1,0);
+	glTranslatef(x_trans_angle,0,0);
+	glRotated(angle_door,0,1,0);
+	glTranslatef(-x_trans_angle,0,0);
 	DesenhaObjeto(porta);
 	glPopMatrix();
+}
+
+void DesenhaJanela(){
+	// Janela Direita
+	// JanelaE
+	glPushMatrix();
+	glTranslatef(109.5,130,-399);
+	glScalef(60, 60, 60);
+	glRotatef(-180,0,1,0);
+	glColor3f(0.75, 0.75, 0.75);
+	glTranslatef(xE_trans_angle,0,0);
+	glRotated(angleE_window,0,1,0);
+	glTranslatef(-xE_trans_angle,0,0);
+	DesenhaObjeto(janela);
+	glPopMatrix();
+	// JanelaD
+	glPushMatrix();
+	glTranslatef(160,130,-399);
+	glScalef(60, 60, 60);
+	glRotatef(-180,0,1,0);
+	glColor3f(0.75, 0.75, 0.75);
+	glTranslatef(xD_trans_angle,0,0);
+	glRotated(angleD_window,0,1,0);
+	glTranslatef(-xD_trans_angle,0,0);
+	DesenhaObjeto(janela);
+	glPopMatrix();
+
+	// Janela Esquerda
+	// JanelaE
+	glPushMatrix();
+	glTranslatef(-160.5,130,-399);
+	glScalef(60, 60, 60);
+	glRotatef(-180,0,1,0);
+	glColor3f(0.75, 0.75, 0.75);
+	glTranslatef(xE_trans_angle,0,0);
+	glRotated(angleE_window,0,1,0);
+	glTranslatef(-xE_trans_angle,0,0);
+	DesenhaObjeto(janela);
+	glPopMatrix();
+	// JanelaD
+	glPushMatrix();
+	glTranslatef(-110,130,-399);
+	glScalef(60, 60, 60);
+	glRotatef(-180,0,1,0);
+	glColor3f(0.75, 0.75, 0.75);
+	glTranslatef(xD_trans_angle,0,0);
+	glRotated(angleD_window,0,1,0);
+	glTranslatef(-xD_trans_angle,0,0);
+	DesenhaObjeto(janela);
+	glPopMatrix();
+
+}
+
+void DesenhaVentiladores(){
+	
+	// Base
+	glPushMatrix();
+	glTranslatef(0, 252, 180);
+	glScalef(40, 40, 40);
+	glRotatef(-180,0,1,0);
+	glColor3f(0.95, 0.95, 0.95);
+	DesenhaObjeto(base);
+	glPopMatrix();
+
+	// Hélice
+	glPushMatrix();
+	glTranslatef(0, 255, 180);
+	glScalef(370, 100, 370);
+	glRotatef(90, 1, 0, 0);
+	glRotatef(90, 0, 0, 1);
+	glColor3f(0.95, 0.95, 0.95);
+	glRotatef(angulo, 0, 0, 1);
+	DesenhaObjeto(helice);
+	glPopMatrix();
+
+	// Base
+	glPushMatrix();
+	glTranslatef(0, 252, -180);
+	glScalef(40, 40, 40);
+	glRotatef(-180,0,1,0);
+	glColor3f(0.95, 0.95, 0.95);
+	DesenhaObjeto(base);
+	glPopMatrix();
+
+	// Hélice
+	glPushMatrix();
+	glTranslatef(0, 255, -180);
+	glScalef(370, 100, 370);
+	glRotatef(90, 1, 0, 0);
+	glRotatef(90, 0, 0, 1);
+	glColor3f(0.95, 0.95, 0.95);
+	glRotatef(angulo, 0, 0, 1);
+	DesenhaObjeto(helice);
+	glPopMatrix();
+
 }
 
 void DesenhaMesas()
@@ -672,6 +827,8 @@ void Desenha(void)
 	DesenhaChao();
 	DesenhaTeto();
 	DesenhaPorta();
+	DesenhaJanela();
+	DesenhaVentiladores();
 	DesenhaMesas();
 	DesenhaMonitores();
 	DesenhaTeclados();
@@ -681,6 +838,22 @@ void Desenha(void)
 
 	// Faz a troca dos buffers
 	glutSwapBuffers();
+}
+
+// Gira hélice do ventilador
+void AnimacaoHelice(int value)
+{	
+	// Muda o angulo de rotacao, e se chegar a 360, passa para zero
+	if(sentido){
+		if( --angulo > 360.0f )
+			angulo = 0.0f;
+	} else {
+		if( ++angulo > 360.0f )
+			angulo = 0.0f;
+	}
+
+	glutPostRedisplay();
+	glutTimerFunc(5,AnimacaoHelice, 1);
 }
 
 // Funcao usada para especificar o volume de visualizacao
@@ -716,9 +889,9 @@ void AlteraTamanhoJanela(GLsizei w, GLsizei h)
 	EspecificaParametrosVisualizacao();
 }
 
-// Funcao callback para eventos de teclas de 
-// navegacao atraves das setas
-void Teclado(int key, int x, int y)
+// Funcao callback para eventos de teclas especiais
+// de navegacao atraves das setas
+void TecladoEspecial(int key, int x, int y)
 {
 	float sina, cosa, sina_01, cosa_01;
 
@@ -755,6 +928,51 @@ void Teclado(int key, int x, int y)
 		obsZ = obsZ + cosa_01;
 		break;
 	}
+	glutPostRedisplay();
+}
+
+// Funcao callback para eventos de teclado
+void Teclado(unsigned char key, int x, int y)
+{
+	// Trata as diversas teclas
+	switch(key)
+	{
+		case 'n':	// abre a porta
+					if(angle_door < ANGLE_DOOR_MAX ){
+						angle_door = angle_door + 1;
+					}
+					break;
+		case 'm':	// fecha a porta
+					if(angle_door > 0){
+						angle_door = angle_door - 1;
+					}
+					break;
+		case 'h':	 // abre a janela (0 > -180) && (0 < 180)
+					if(angleE_window > ANGLEE_WINDOW_MAX && angleD_window < ANGLED_WINDOW_MAX){
+						angleE_window = angleE_window - 1;
+						angleD_window = angleD_window + 1;
+					}
+					break;
+		case 'j':	// fecha a janela (-179 > -360) && (179 > 0)
+					if(angleE_window > -360 && angleD_window > 0){
+						angleE_window = angleE_window + 1;
+						angleD_window = angleD_window - 1;
+					}break;
+		case 'g':
+					if(sentido){
+						sentido = 0;
+					} else {
+						sentido = 1;
+					}
+		// Sai do programa
+		case 27:	// Libera todos os objetos carregados...
+					LiberaObjeto(NULL);
+					// e materiais
+					LiberaMateriais();
+					exit(1);
+				break;
+	}
+	// Na próxima iteração por meio de glutMainLoop essa janela será exibida novamente
 	glutPostRedisplay();
 }
 
@@ -851,10 +1069,12 @@ void Inicializa(void)
 	glEnable(GL_DEPTH_TEST);
 
 	// Carrega objetos
-	plano = CarregaObjeto("obj/parede.obj", true);
-	mesa = CarregaObjeto("obj/mesa.obj", true);
+	plano = CarregaObjeto("obj/parede.obj", false);
+	mesa = CarregaObjeto("obj/mesa.obj", false);
 	porta = CarregaObjeto("obj/porta.obj", false);
 	janela = CarregaObjeto("obj/janela.obj", false);
+	base = CarregaObjeto("obj/base.obj", false);
+	helice = CarregaObjeto("obj/helice.obj", false);
 	lamp = CarregaObjeto("obj/lampada.obj", false);
 	monitor = CarregaObjeto("obj/monitor.obj", false);
 	teclado = CarregaObjeto("obj/teclado.obj", false);
@@ -887,14 +1107,20 @@ int main(int argc, char **argv)
 	// Registra a funcao callback de redesenho da janela de visualizacao
 	glutDisplayFunc(Desenha);
 
-	// Registra a funcao callback de teclas especiais
-	glutSpecialFunc(Teclado);
+	// Registra a funcao callback das teclas de movimentação (especiais)
+	glutSpecialFunc(TecladoEspecial);
+
+	// Registra a funcao callback de teclas selecionadas
+	glutKeyboardFunc(Teclado);
 
 	// Registra a funcao callback para eventos de botoes do mouse
 	glutMouseFunc(GerenciaMouse);
 
 	// Registra a funcao callback para eventos de movimento do mouse
 	glutMotionFunc(GerenciaMovimentoMouse);
+
+	// Registra a funcao callback para a hélice do ventilador
+	glutTimerFunc(60, AnimacaoHelice, 1);
 
 	// Registra a funcao callback de redimensionamento da janela de visualizacao
 	glutReshapeFunc(AlteraTamanhoJanela);

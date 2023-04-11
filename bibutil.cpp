@@ -7,7 +7,6 @@
 
 using namespace std;
 
-
 vector<OBJ*> _objetos(0);
 vector<MAT*> _materiais(0);
 
@@ -115,7 +114,6 @@ void RotaX(VERT &in, VERT &out, float ang)
 	out.z = -in.y * sin(arad) + in.z * cos(arad);
 }
 
-
 int leNum(char **face, char *sep)
 {
 	char temp[10];
@@ -217,14 +215,12 @@ void _leMateriais(char *nomeArquivo)
 	fclose(fp);
 }
 
-
 OBJ *CarregaObjeto(char *nomeArquivo, bool mipmap)
 {
 	int i;
 	int vcont,ncont,fcont,tcont;
 	int material;
 	char aux[256];
-	TEX *ptr;
 	FILE *fp;
 	OBJ *obj;
 	
@@ -232,7 +228,6 @@ OBJ *CarregaObjeto(char *nomeArquivo, bool mipmap)
 
 #ifdef DEBUG
 #endif
-
 
 	if(fp == NULL)
           return NULL;
@@ -252,7 +247,6 @@ OBJ *CarregaObjeto(char *nomeArquivo, bool mipmap)
 	obj->faces = NULL;
 	obj->normais = NULL;
 	obj->texcoords = NULL;
-
 
 	while(!feof(fp))
 	{

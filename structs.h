@@ -1,19 +1,8 @@
-#ifndef __STRUCTS_H
 #define __STRUCTS_H
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <GL/glut.h>
-
-typedef struct
-{
-	char nome[50];			
-	int ncomp;				
-	GLint dimx;				
-	GLint dimy;				
-	GLuint texid;			
-	unsigned char *data;	
-} TEX;
 
 typedef struct {
 	GLfloat x,y,z;

@@ -9,26 +9,22 @@
 #define M_PI 3.1415926
 #endif
 
+// Define a estrutura de um vértice
 typedef struct {
 	GLfloat x,y,z;
 } VERT;
 
-
+// Define a estrutura de uma face
 typedef struct {
 	GLint nv;		
 	GLint *vert;	
 	GLint *norm;	
 	GLint *tex;		
-	GLint mat;		
+	GLint mat;	
 	GLint texid;	
 } FACE;
 
-
-typedef struct {
-	GLfloat s,t,r;
-} TEXCOORD;
-
-
+// Define a estrutura de um objeto 3D
 typedef struct {
 	GLint numVertices;
 	GLint numFaces;
@@ -36,21 +32,20 @@ typedef struct {
 	GLint numTexcoords;
 	bool normais_por_vertice;	
 	bool tem_materiais;						
-	GLint dlist;				
+	GLint dlist;	// display list, se houver				
 	VERT *vertices;
 	VERT *normais;
 	FACE *faces;
-	TEXCOORD *texcoords;
 } OBJ;
 
-
+// Define um material
 typedef struct {
-	char nome[20];	
-	GLfloat ka[4];	
-	GLfloat kd[4];	
-	GLfloat ks[4];	
-	GLfloat ke[4];	
-	GLfloat spec;	
+	char nome[20];	// identificacao do objeto
+	GLfloat ka[4];	// ambiente
+	GLfloat kd[4];	// difuso
+	GLfloat ks[4];	// especular
+	GLfloat ke[4];	// emissao
+	GLfloat spec;	// especularidade
 } MAT;
 
 void Normaliza(VERT &norm);

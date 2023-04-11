@@ -10,7 +10,7 @@ using namespace std;
 vector<OBJ*> _objetos(0);
 vector<MAT*> _materiais(0);
 
-char _modo = 't';
+char _modo = 's'; // desenha sólidos sem textura
 
 int _numquadro =0, _tempo, _tempoAnterior = 0;
 float _ultqps = 0;
@@ -246,7 +246,6 @@ OBJ *CarregaObjeto(char *nomeArquivo, bool mipmap)
 	obj->vertices = NULL;
 	obj->faces = NULL;
 	obj->normais = NULL;
-	obj->texcoords = NULL;
 
 	while(!feof(fp))
 	{
@@ -275,10 +274,6 @@ OBJ *CarregaObjeto(char *nomeArquivo, bool mipmap)
 		if ( ( obj->normais = (VERT *) malloc((sizeof(VERT)) * obj->numNormais) ) == NULL )
 			return NULL;
 
-	if(obj->numTexcoords)
-		if ( ( obj->texcoords = (TEXCOORD *) malloc((sizeof(TEXCOORD)) * obj->numTexcoords) ) == NULL )
-			return NULL;
-	
 	vcont = 0;
 	ncont = 0;
 	tcont = 0;
@@ -333,13 +328,6 @@ OBJ *CarregaObjeto(char *nomeArquivo, bool mipmap)
 					&obj->normais[ncont].z);
 			ncont++;
 			obj->normais_por_vertice = true;
-		}
-		if(!strncmp(aux,"vt ",3))
-		{
-			sscanf(aux,"vt %f %f %f",&obj->texcoords[tcont].s,
-					&obj->texcoords[tcont].t,
-					&obj->texcoords[tcont].r);
-			tcont++;
 		}
 		if(!strncmp(aux,"f ",2))
 		{
@@ -402,18 +390,22 @@ OBJ *CarregaObjeto(char *nomeArquivo, bool mipmap)
 	return obj;
 }
 
+// Seta o modo do desenho: w=wireframe, s=sólidos sem textura
+// t=sólidos com textura
 void SetaModoDesenho(char modo)
 {
 	if(modo!='w' && modo!='s' && modo!='t') return;
 	_modo = modo;
 }
 
+// Desenha um objeto 3D passado como parâmetro
 void DesenhaObjeto(OBJ *obj)
 {
 	int i;	
 	GLenum prim = GL_POLYGON;	
 	GLfloat branco[4] = { 1.0, 1.0, 1.0, 1.0 };	
 
+	// gera uma nova display ou chama a já associada
 	if(obj->dlist >= 1000)
 		glNewList(obj->dlist-1000,GL_COMPILE_AND_EXECUTE);
 	else if(obj->dlist > -1)
@@ -422,38 +414,38 @@ void DesenhaObjeto(OBJ *obj)
 		return;
 	}
 
+	// se objeto for desenhado em wireframe
 	if(_modo=='w') prim = GL_LINE_LOOP;
 
 	glPushAttrib(GL_LIGHTING_BIT);
 	glDisable(GL_TEXTURE_2D);
 
+	// se objeto tiver material, desabilita COLOR_MATERIAL
 	if(obj->tem_materiais)
 		glDisable(GL_COLOR_MATERIAL);
 
-
+	// Varre todas as faces do objeto
 	for(i=0; i<obj->numFaces; i++)
 	{
-
 		if(!obj->normais_por_vertice)
 			glNormal3f(obj->normais[i].x,obj->normais[i].y,obj->normais[i].z);
 
+		// verifica se existe material associado a face
 		if(obj->faces[i].mat != -1)
 		{
 			int mat = obj->faces[i].mat;
 			glMaterialfv(GL_FRONT,GL_AMBIENT,_materiais[mat]->ka);
-
-			if(obj->faces[i].texid != -1 && _modo=='t')
-				glMaterialfv(GL_FRONT,GL_DIFFUSE,branco);
-			else
-				glMaterialfv(GL_FRONT,GL_DIFFUSE,_materiais[mat]->kd);
+			glMaterialfv(GL_FRONT,GL_DIFFUSE,_materiais[mat]->kd);
 			glMaterialfv(GL_FRONT,GL_SPECULAR,_materiais[mat]->ks);
 			glMaterialfv(GL_FRONT,GL_EMISSION,_materiais[mat]->ke);
 			glMaterialf(GL_FRONT,GL_SHININESS,_materiais[mat]->spec);
 		}
 
+		// Inicia a face - percorre todos os vertices da face
 		glBegin(prim);
 		for(int vf=0; vf<obj->faces[i].nv;++vf)
 		{
+			// envia a normal, se houver normais definidas para cada face
 			if(obj->normais_por_vertice)
 				glNormal3f(obj->normais[obj->faces[i].norm[vf]].x,
 				obj->normais[obj->faces[i].norm[vf]].y,
@@ -468,6 +460,8 @@ void DesenhaObjeto(OBJ *obj)
 	
 	glDisable(GL_TEXTURE_2D);
 	glPopAttrib();
+	
+	// se for uma nova display list
 	if(obj->dlist >= 1000)
 	{
 		glEndList();
@@ -479,7 +473,6 @@ void _liberaObjeto(OBJ *obj)
 {
 	if (obj->vertices != NULL)  free(obj->vertices);
 	if (obj->normais != NULL)   free(obj->normais);
-	if (obj->texcoords != NULL) free(obj->texcoords);
 	for(int i=0; i<obj->numFaces;++i)
 	{
 		if (obj->faces[i].vert != NULL) free(obj->faces[i].vert);
@@ -489,6 +482,7 @@ void _liberaObjeto(OBJ *obj)
 	free(obj);
 }
 
+// Libera a memória ocupada pelos objetos
 void LiberaObjeto(OBJ *obj)
 {
 	unsigned int o;
@@ -509,6 +503,7 @@ void LiberaObjeto(OBJ *obj)
 	}
 }
 
+// Libera a memória ocupada pelos materiais
 void LiberaMateriais()
 {
 	unsigned int i;

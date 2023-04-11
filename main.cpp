@@ -27,27 +27,13 @@ GLfloat xE_trans_angle = 0.430, xD_trans_angle = -0.430, angleE_window = 0, angl
 GLfloat angulo;
 GLfloat sentido = 1;
 
+// Variaveis para controle do mouse
+#define SENS_ROT 5.0
+#define SENS_OBS 10.0
+
 // Objetos
 OBJ *plano, *mesa, *porta, *janela, *lamp, *monitor, *teclado, *mouse, *cadeira, *interruptor, *lousa, *lixeira,
 *base, *helice;
-
-// Luminosidade base de uma lampada
-#define LOW 0.3
-
-// Define parametros de iluminacao
-// Luz 1: pontual no teto, frente
-GLfloat luzAmb1[4] = {0.1, 0.1, 0.1, 1};   // luz ambiente
-GLfloat luzDif1[4] = {LOW, LOW, LOW, 1.0}; // luz difusa
-GLfloat luzEsp1[4] = {0.0, 0.0, 0.0, 1.0}; // luz especular
-GLfloat posLuz1[4] = {0, 200, 250, 1};	   // posicao da fonte de luz
-// Luz 2: pontual no teto, meio da sala
-GLfloat luzDif2[4] = {LOW, LOW, LOW, 1.0}; // luz difusa
-GLfloat posLuz2[4] = {0, 200, 0, 1};	   // posicao da fonte de luz
-// Luz 3: pontual no teto, atras
-GLfloat luzDif3[4] = {LOW, LOW, LOW, 1.0}; // luz difusa
-GLfloat posLuz3[4] = {0, 200, -250, 1};	   // posicao da fonte de luz
-
-bool luzes[6] = {true, true, true, false, false};
 
 // Define variaveis para navegacao
 GLfloat rotX = 0, rotY = 0, rotX_ini, rotY_ini;
@@ -64,7 +50,7 @@ void DesenhaParedes(void)
 	glPushMatrix();
 	glTranslatef(300, 150, 0);
 	glRotatef(-90, 0, 1, 0);
-	glColor3f(0.85, 0.85, 0.85);
+	glColor3f(0.92, 0.92, 0.92);
 	glScalef(8, 3, 1);
 	DesenhaObjeto(plano);
 
@@ -75,7 +61,7 @@ void DesenhaParedes(void)
 	glPushMatrix();
 	glTranslatef(-300, 150, 0);
 	glRotatef(90, 0, 1, 0);
-	glScalef(8, 3, 1); // 8 m x 75 cm
+	glScalef(8, 3, 1); // 8 m x 3 m
 	DesenhaObjeto(plano);
 	glPopMatrix();
 
@@ -139,6 +125,28 @@ void DesenhaParedes(void)
 	glPopMatrix();
 }
 
+void DesenhaChao(void)
+{
+	glPushMatrix();
+	glTranslatef(0, 0, 0);
+	glRotatef(-90, 1, 0, 0);
+	glScalef(6, 8, 1);
+	glColor3f(0.80, 0.80, 0.80);
+	DesenhaObjeto(plano);
+	glPopMatrix();
+}
+
+void DesenhaTeto(void)
+{
+	glPushMatrix();
+	glTranslatef(0, 300, 0);
+	glRotatef(90, 1, 0, 0);
+	glScalef(6, 8, 1);
+	glColor3f(0.90, 0.90, 0.90);
+	DesenhaObjeto(plano);
+	glPopMatrix();
+}
+
 void DesenhaPorta()
 {
 	// Desenha a porta
@@ -146,6 +154,7 @@ void DesenhaPorta()
 	glTranslatef(-170, 0, 397.5);
 	glScalef(100, 100, 100);
 	glRotatef(-180,0,1,0);
+	glColor3f(0.65, 0.35, 0);
 	glTranslatef(x_trans_angle,0,0);
 	glRotated(angle_door,0,1,0);
 	glTranslatef(-x_trans_angle,0,0);
@@ -211,7 +220,7 @@ void DesenhaVentiladores(){
 	glTranslatef(0, 252, 180);
 	glScalef(40, 40, 40);
 	glRotatef(-180,0,1,0);
-	glColor3f(0.95, 0.95, 0.95);
+	glColor3f(0.75, 0.75, 0.75);
 	DesenhaObjeto(base);
 	glPopMatrix();
 
@@ -221,7 +230,7 @@ void DesenhaVentiladores(){
 	glScalef(370, 100, 370);
 	glRotatef(90, 1, 0, 0);
 	glRotatef(90, 0, 0, 1);
-	glColor3f(0.95, 0.95, 0.95);
+	glColor3f(0.85, 0.85, 0.85);
 	glRotatef(angulo, 0, 0, 1);
 	DesenhaObjeto(helice);
 	glPopMatrix();
@@ -231,7 +240,7 @@ void DesenhaVentiladores(){
 	glTranslatef(0, 252, -180);
 	glScalef(40, 40, 40);
 	glRotatef(-180,0,1,0);
-	glColor3f(0.95, 0.95, 0.95);
+	glColor3f(0.75, 0.75, 0.75);
 	DesenhaObjeto(base);
 	glPopMatrix();
 
@@ -241,7 +250,7 @@ void DesenhaVentiladores(){
 	glScalef(370, 100, 370);
 	glRotatef(90, 1, 0, 0);
 	glRotatef(90, 0, 0, 1);
-	glColor3f(0.95, 0.95, 0.95);
+	glColor3f(0.85, 0.85, 0.85);
 	glRotatef(angulo, 0, 0, 1);
 	DesenhaObjeto(helice);
 	glPopMatrix();
@@ -739,6 +748,7 @@ void DesenhaObjExtra()
 	glTranslatef(0, 297, 0);
 	glRotatef(90, 1, 0, 0);
 	glRotatef(90, 0, 0, 1);
+	glColor3f(0.9, 0.9, 0);
 	DesenhaObjeto(lamp);
 	glPopMatrix();
 
@@ -770,30 +780,6 @@ void DesenhaObjExtra()
 	glPopMatrix();
 }
 
-// Desenha o chao
-void DesenhaChao(void)
-{
-	glPushMatrix();
-	glTranslatef(0, 0, 0);
-	glRotatef(-90, 1, 0, 0);
-	glScalef(6, 8, 1);
-	glColor3f(0.90, 0.90, 0.90);
-	DesenhaObjeto(plano);
-	glPopMatrix();
-}
-
-// Desenha o teto
-void DesenhaTeto(void)
-{
-	glPushMatrix();
-	glTranslatef(0, 300, 0);
-	glRotatef(90, 1, 0, 0);
-	glScalef(6, 8, 1);
-	glColor3f(1, 1, 1);
-	DesenhaObjeto(plano);
-	glPopMatrix();
-}
-
 // Desenha toda a cena
 void Desenha(void)
 {
@@ -811,16 +797,6 @@ void Desenha(void)
 	glTranslatef(-obsX, -obsY, -obsZ);
 
 	glEnable(GL_TEXTURE_2D);
-
-	// Agora posiciona a fonte de luz do meio da sala
-	// Agora posiciona demais fontes de luz
-	glLightfv(GL_LIGHT0, GL_POSITION, posLuz1);
-	glLightfv(GL_LIGHT1, GL_POSITION, posLuz2);
-	glLightfv(GL_LIGHT2, GL_POSITION, posLuz3);
-
-	// Luz spot
-	glLightf(GL_LIGHT4, GL_SPOT_CUTOFF, 70.0);
-	glLightf(GL_LIGHT4, GL_SPOT_EXPONENT, 10);
 
 	// Desenha todos os elementos da cena
 	DesenhaParedes();
@@ -994,9 +970,6 @@ void GerenciaMouse(int button, int state, int x, int y)
 }
 
 // Funcao callback para eventos de movimento do mouse
-#define SENS_ROT 5.0
-#define SENS_OBS 10.0
-
 void GerenciaMovimentoMouse(int x, int y)
 {
 	// Botao esquerdo ? 
@@ -1026,24 +999,6 @@ void Inicializa(void)
 	// Define a cor de fundo da janela de visualizacao como preto
 	glClearColor(0, 0, 0, 1);
 
-	// Ajusta iluminacao
-	glLightfv(GL_LIGHT0, GL_AMBIENT, luzAmb1);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, luzDif1);
-	glLightfv(GL_LIGHT0, GL_SPECULAR, luzEsp1);
-	glLightfv(GL_LIGHT1, GL_AMBIENT, luzAmb1);
-	glLightfv(GL_LIGHT1, GL_DIFFUSE, luzDif2);
-	glLightfv(GL_LIGHT2, GL_AMBIENT, luzAmb1);
-	glLightfv(GL_LIGHT2, GL_DIFFUSE, luzDif3);
-	glLightfv(GL_LIGHT3, GL_AMBIENT, luzAmb1);
-
-	// Habilita todas as fontes de luz
-	glEnable(GL_LIGHT0);
-	glEnable(GL_LIGHT1);
-	glEnable(GL_LIGHT2);
-	glEnable(GL_LIGHT3);
-	glEnable(GL_LIGHT4);
-	glEnable(GL_LIGHTING);
-
 	// Define coeficientes ambiente e difuso
 	// do material
 	GLfloat matAmb[4] = {0.2, 0.2, 0.2, 1};
@@ -1057,11 +1012,6 @@ void Inicializa(void)
 	// faz com que uma cor de material acompanhe a cor atual
 	glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
 	glEnable(GL_COLOR_MATERIAL);
-
-	// Habilita normalizacao automatica
-	// Vetores normais sao normalizados para valores unitarios
-	// apos transformacao e antes da iluminacao
-	glEnable(GL_NORMALIZE);
 
 	// Habilita Z-Buffer
 	// Realiza comparacoes de profundidade

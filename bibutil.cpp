@@ -23,41 +23,6 @@ void glutBitmapString(void *fonte,char *texto)
 }
 #endif
 
-float CalculaQPS(void)
-{
-	_numquadro++;
-
-	_tempo = glutGet(GLUT_ELAPSED_TIME);
-	if (_tempo - _tempoAnterior > 1000)
-	{
-		_ultqps = _numquadro*1000.0/(_tempo - _tempoAnterior);
-	 	_tempoAnterior = _tempo;
-		_numquadro = 0;
-	}
-	return _ultqps;
-}
-
-void Escreve2D(float x, float y, char *str)
-{
-	glMatrixMode(GL_PROJECTION);
-	glPushMatrix();
-	glLoadIdentity();
-	gluOrtho2D(0,1,0,1);
-	
-	glMatrixMode(GL_MODELVIEW);
-	glPushMatrix();
-	glLoadIdentity();
-
-	glRasterPos2f(x,y);
-	glColor3f(0,0,0);
-	glutBitmapString(GLUT_BITMAP_9_BY_15,str);
-	
-	glMatrixMode(GL_PROJECTION);
-	glPopMatrix();
-	glMatrixMode(GL_MODELVIEW);
-	glPopMatrix();
-}
-
 void Normaliza(VERT &norm)
 {
 	float tam = sqrt(norm.x*norm.x
@@ -529,45 +494,4 @@ void CalculaNormaisPorFace(OBJ *obj)
 	VetorNormal(obj->vertices[obj->faces[i].vert[0]],
 		obj->vertices[obj->faces[i].vert[1]],
 		obj->vertices[obj->faces[i].vert[2]],obj->normais[i]);
-}
-
-GLenum faces[6] = {
-  GL_TEXTURE_CUBE_MAP_POSITIVE_X,
-  GL_TEXTURE_CUBE_MAP_NEGATIVE_X,
-  GL_TEXTURE_CUBE_MAP_POSITIVE_Y,
-  GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,
-  GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
-  GL_TEXTURE_CUBE_MAP_NEGATIVE_Z
-};
-
-void DesabilitaDisplayList(OBJ *ptr)
-{
-	if(ptr == NULL) return;
-	if(ptr->dlist > 0 && ptr->dlist < 1000) 
-	{
-			glDeleteLists(ptr->dlist,1);
-	}
-
-	ptr->dlist = -2;
-}
-
-void _criaDList(OBJ *ptr)
-{
-	if(ptr->dlist == -1) ptr->dlist = glGenLists(1);
-
-	ptr->dlist = ptr->dlist + 1000;
-}
-
-void CriaDisplayList(OBJ *ptr)
-{
-	if(ptr==NULL)
-	{
-		for(unsigned int i=0;i<_objetos.size();++i)
-		{
-			ptr = _objetos[i];
-			if(ptr->dlist == -2) continue;
-			_criaDList(ptr);
-		}
-	}
-	else if(ptr->dlist != -2)_criaDList(ptr);
 }

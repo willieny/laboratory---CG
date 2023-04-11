@@ -1,14 +1,9 @@
 #include <GL/glut.h>
 #include <math.h>
 #include "bibutil.h"
-#include <vector>
 #include <stdio.h>
-#include <string.h>
 
 using namespace std;
-
-// Define filtro inicial como GL_NEAREST_MIPMAP_LINEAR
-int filtro = 4;
 
 // Variaveis para controle da projecao
 GLfloat fAspect;
@@ -16,12 +11,16 @@ GLfloat ang_cam = 60;
 
 // Variaveis para controle da porta
 #define ANGLE_DOOR_MAX 90
-GLfloat x_trans_angle = 0.430, angle_door = 0;
+GLfloat x_trans_angle = 0.430,
+		angle_door = 0;
 
 // Variaveis para controle da janela
 #define ANGLEE_WINDOW_MAX -180
 #define ANGLED_WINDOW_MAX 180
-GLfloat xE_trans_angle = 0.430, xD_trans_angle = -0.430, angleE_window = 0, angleD_window = 0;
+GLfloat xE_trans_angle = 0.430,
+		xD_trans_angle = -0.430,
+		angleE_window = 0,
+		angleD_window = 0;
 
 // Variaveis para controle da hélice
 GLfloat angulo;
@@ -32,16 +31,37 @@ GLfloat sentido = 1;
 #define SENS_OBS 10.0
 
 // Objetos
-OBJ *plano, *mesa, *porta, *janela, *lamp, *monitor, *teclado, *mouse, *cadeira, *interruptor, *lousa, *lixeira,
-*base, *helice;
+OBJ *plano,
+	*mesa,
+	*porta,
+	*janela,
+	*lamp,
+	*monitor,
+	*teclado,
+	*mouse,
+	*cadeira,
+	*interruptor,
+	*lousa,
+	*lixeira,
+	*base,
+	*helice;
 
 // Define variaveis para navegacao
-GLfloat rotX = 0, rotY = 0, rotX_ini, rotY_ini;
-GLfloat obsX = 0, obsY = 150, obsZ = 100, obsY_ini;
-int x_ini, y_ini, bot;
+GLfloat rotX = 0,
+		rotY = 0,
+		rotX_ini,
+		rotY_ini;
+
+GLfloat obsX = 0,
+		obsY = 150,
+		obsZ = 100,
+		obsY_ini;
+
+int x_ini,
+	y_ini,
+	bot;
 
 // Arquivo de cena e arquivo de camera
-
 // Desenha 4 paredes
 void DesenhaParedes(void)
 {
@@ -53,8 +73,6 @@ void DesenhaParedes(void)
 	glColor3f(0.92, 0.92, 0.92);
 	glScalef(8, 3, 1);
 	DesenhaObjeto(plano);
-
-	// Retira a matriz do topo da pilha e torna esta última a matriz de transformação corrente
 	glPopMatrix();
 
 	// Parede direita
@@ -102,25 +120,25 @@ void DesenhaParedes(void)
 
 	// Parte superior da frente
 	glPushMatrix();
-	glTranslatef(0,250,400);
-	glRotatef(180,0,1,0);
-	glScalef(6,1,1);
+	glTranslatef(0, 250, 400);
+	glRotatef(180, 0, 1, 0);
+	glScalef(6, 1, 1);
 	DesenhaObjeto(plano);
 	glPopMatrix();
 
 	// Parte esquerda da frente
 	glPushMatrix();
-	glTranslatef(87.5,100,400);
-	glRotatef(180,0,1,0);
-	glScalef(4.25,2,1);
+	glTranslatef(87.5, 100, 400);
+	glRotatef(180, 0, 1, 0);
+	glScalef(4.25, 2, 1);
 	DesenhaObjeto(plano);
 	glPopMatrix();
 
 	// Parte direita da frente
 	glPushMatrix();
-	glTranslatef(-257,100,400);
-	glRotatef(180,0,1,0);
-	glScalef(0.86,2,1);
+	glTranslatef(-257, 100, 400);
+	glRotatef(180, 0, 1, 0);
+	glScalef(0.86, 2, 1);
 	DesenhaObjeto(plano);
 	glPopMatrix();
 }
@@ -151,75 +169,77 @@ void DesenhaPorta()
 {
 	// Desenha a porta
 	glPushMatrix();
+
 	glTranslatef(-170, 0, 397.5);
 	glScalef(100, 100, 100);
-	glRotatef(-180,0,1,0);
+	glRotatef(-180, 0, 1, 0);
 	glColor3f(0.65, 0.35, 0);
-	glTranslatef(x_trans_angle,0,0);
-	glRotated(angle_door,0,1,0);
-	glTranslatef(-x_trans_angle,0,0);
+	glTranslatef(x_trans_angle, 0, 0);
+	glRotated(angle_door, 0, 1, 0);
+	glTranslatef(-x_trans_angle, 0, 0);
 	DesenhaObjeto(porta);
 	glPopMatrix();
 }
 
-void DesenhaJanela(){
+void DesenhaJanela()
+{
 	// Janela Direita
 	// JanelaE
 	glPushMatrix();
-	glTranslatef(109.5,130,-399);
+	glTranslatef(109.5, 130, -399);
 	glScalef(60, 60, 60);
-	glRotatef(-180,0,1,0);
+	glRotatef(-180, 0, 1, 0);
 	glColor3f(0.75, 0.75, 0.75);
-	glTranslatef(xE_trans_angle,0,0);
-	glRotated(angleE_window,0,1,0);
-	glTranslatef(-xE_trans_angle,0,0);
+	glTranslatef(xE_trans_angle, 0, 0);
+	glRotated(angleE_window, 0, 1, 0);
+	glTranslatef(-xE_trans_angle, 0, 0);
 	DesenhaObjeto(janela);
 	glPopMatrix();
 	// JanelaD
 	glPushMatrix();
-	glTranslatef(160,130,-399);
+	glTranslatef(160, 130, -399);
 	glScalef(60, 60, 60);
-	glRotatef(-180,0,1,0);
+	glRotatef(-180, 0, 1, 0);
 	glColor3f(0.75, 0.75, 0.75);
-	glTranslatef(xD_trans_angle,0,0);
-	glRotated(angleD_window,0,1,0);
-	glTranslatef(-xD_trans_angle,0,0);
+	glTranslatef(xD_trans_angle, 0, 0);
+	glRotated(angleD_window, 0, 1, 0);
+	glTranslatef(-xD_trans_angle, 0, 0);
 	DesenhaObjeto(janela);
 	glPopMatrix();
 
 	// Janela Esquerda
 	// JanelaE
 	glPushMatrix();
-	glTranslatef(-160.5,130,-399);
+	glTranslatef(-160.5, 130, -399);
 	glScalef(60, 60, 60);
-	glRotatef(-180,0,1,0);
+	glRotatef(-180, 0, 1, 0);
 	glColor3f(0.75, 0.75, 0.75);
-	glTranslatef(xE_trans_angle,0,0);
-	glRotated(angleE_window,0,1,0);
-	glTranslatef(-xE_trans_angle,0,0);
+	glTranslatef(xE_trans_angle, 0, 0);
+	glRotated(angleE_window, 0, 1, 0);
+	glTranslatef(-xE_trans_angle, 0, 0);
 	DesenhaObjeto(janela);
 	glPopMatrix();
 	// JanelaD
 	glPushMatrix();
-	glTranslatef(-110,130,-399);
+	glTranslatef(-110, 130, -399);
 	glScalef(60, 60, 60);
-	glRotatef(-180,0,1,0);
+	glRotatef(-180, 0, 1, 0);
 	glColor3f(0.75, 0.75, 0.75);
-	glTranslatef(xD_trans_angle,0,0);
-	glRotated(angleD_window,0,1,0);
-	glTranslatef(-xD_trans_angle,0,0);
+	glTranslatef(xD_trans_angle, 0, 0);
+	glRotated(angleD_window, 0, 1, 0);
+	glTranslatef(-xD_trans_angle, 0, 0);
 	DesenhaObjeto(janela);
 	glPopMatrix();
-
 }
 
-void DesenhaVentiladores(){
-	
+void DesenhaVentiladores()
+{
+
 	// Base
 	glPushMatrix();
 	glTranslatef(0, 252, 180);
 	glScalef(40, 40, 40);
-	glRotatef(-180,0,1,0);
+	glRotatef(-180, 0, 1, 0);
 	glColor3f(0.75, 0.75, 0.75);
 	DesenhaObjeto(base);
 	glPopMatrix();
@@ -239,7 +259,7 @@ void DesenhaVentiladores(){
 	glPushMatrix();
 	glTranslatef(0, 252, -180);
 	glScalef(40, 40, 40);
-	glRotatef(-180,0,1,0);
+	glRotatef(-180, 0, 1, 0);
 	glColor3f(0.75, 0.75, 0.75);
 	DesenhaObjeto(base);
 	glPopMatrix();
@@ -254,7 +274,6 @@ void DesenhaVentiladores(){
 	glRotatef(angulo, 0, 0, 1);
 	DesenhaObjeto(helice);
 	glPopMatrix();
-
 }
 
 void DesenhaMesas()
@@ -372,7 +391,6 @@ void DesenhaMesas()
 	glColor3f(1, 1, 1);
 	DesenhaObjeto(mesa);
 	glPopMatrix();
-
 }
 
 void DesenhaMonitores()
@@ -464,7 +482,6 @@ void DesenhaMonitores()
 	glScalef(90, 90, 90);
 	DesenhaObjeto(monitor);
 	glPopMatrix();
-
 }
 
 void DesenhaTeclados()
@@ -556,7 +573,6 @@ void DesenhaTeclados()
 	glScalef(90, 90, 90);
 	DesenhaObjeto(teclado);
 	glPopMatrix();
-
 }
 
 void DesenhaMouses()
@@ -647,7 +663,6 @@ void DesenhaMouses()
 	glScalef(90, 90, 90);
 	DesenhaObjeto(mouse);
 	glPopMatrix();
-
 }
 
 void DesenhaCadeiras()
@@ -738,7 +753,6 @@ void DesenhaCadeiras()
 	glScalef(90, 90, 90);
 	DesenhaObjeto(cadeira);
 	glPopMatrix();
-
 }
 
 void DesenhaObjExtra()
@@ -818,18 +832,21 @@ void Desenha(void)
 
 // Gira hélice do ventilador
 void AnimacaoHelice(int value)
-{	
+{
 	// Muda o angulo de rotacao, e se chegar a 360, passa para zero
-	if(sentido){
-		if( --angulo > 360.0f )
+	if (sentido)
+	{
+		if (--angulo > 360.0f)
 			angulo = 0.0f;
-	} else {
-		if( ++angulo > 360.0f )
+	}
+	else
+	{
+		if (++angulo > 360.0f)
 			angulo = 0.0f;
 	}
 
 	glutPostRedisplay();
-	glutTimerFunc(5,AnimacaoHelice, 1);
+	glutTimerFunc(5, AnimacaoHelice, 1);
 }
 
 // Funcao usada para especificar o volume de visualizacao
@@ -911,42 +928,48 @@ void TecladoEspecial(int key, int x, int y)
 void Teclado(unsigned char key, int x, int y)
 {
 	// Trata as diversas teclas
-	switch(key)
+	switch (key)
 	{
-		case 'n':	// abre a porta
-					if(angle_door < ANGLE_DOOR_MAX ){
-						angle_door = angle_door + 1;
-					}
-					break;
-		case 'm':	// fecha a porta
-					if(angle_door > 0){
-						angle_door = angle_door - 1;
-					}
-					break;
-		case 'h':	 // abre a janela (0 > -180) && (0 < 180)
-					if(angleE_window > ANGLEE_WINDOW_MAX && angleD_window < ANGLED_WINDOW_MAX){
-						angleE_window = angleE_window - 1;
-						angleD_window = angleD_window + 1;
-					}
-					break;
-		case 'j':	// fecha a janela (-179 > -360) && (179 > 0)
-					if(angleE_window > -360 && angleD_window > 0){
-						angleE_window = angleE_window + 1;
-						angleD_window = angleD_window - 1;
-					}break;
-		case 'g':
-					if(sentido){
-						sentido = 0;
-					} else {
-						sentido = 1;
-					}
-		// Sai do programa
-		case 27:	// Libera todos os objetos carregados...
-					LiberaObjeto(NULL);
-					// e materiais
-					LiberaMateriais();
-					exit(1);
-				break;
+	case 'n': // abre a porta
+		if (angle_door < ANGLE_DOOR_MAX)
+		{
+			angle_door = angle_door + 1;
+		}
+		break;
+	case 'm': // fecha a porta
+		if (angle_door > 0)
+		{
+			angle_door = angle_door - 1;
+		}
+		break;
+	case 'h': // abre a janela (0 > -180) && (0 < 180)
+		if (angleE_window > ANGLEE_WINDOW_MAX && angleD_window < ANGLED_WINDOW_MAX)
+		{
+			angleE_window = angleE_window - 1;
+			angleD_window = angleD_window + 1;
+		}
+		break;
+	case 'j': // fecha a janela (-179 > -360) && (179 > 0)
+		if (angleE_window > -360 && angleD_window > 0)
+		{
+			angleE_window = angleE_window + 1;
+			angleD_window = angleD_window - 1;
+		}
+		break;
+	case 'g':
+		if (sentido)
+		{
+			sentido = 0;
+		}
+		else
+		{
+			sentido = 1;
+		}
+	// Sai do programa
+	case 27: // Libera todos os objetos carregados...
+		LiberaObjeto(NULL);
+		exit(1);
+		break;
 	}
 	// Na próxima iteração por meio de glutMainLoop essa janela será exibida novamente
 	glutPostRedisplay();
@@ -972,7 +995,7 @@ void GerenciaMouse(int button, int state, int x, int y)
 // Funcao callback para eventos de movimento do mouse
 void GerenciaMovimentoMouse(int x, int y)
 {
-	// Botao esquerdo ? 
+	// Botao esquerdo ?
 	if (bot == GLUT_LEFT_BUTTON)
 	{
 		// Calcula diferencas
@@ -998,20 +1021,6 @@ void Inicializa(void)
 {
 	// Define a cor de fundo da janela de visualizacao como preto
 	glClearColor(0, 0, 0, 1);
-
-	// Define coeficientes ambiente e difuso
-	// do material
-	GLfloat matAmb[4] = {0.2, 0.2, 0.2, 1};
-	GLfloat matDif[4] = {1, 1, 1, 1};
-
-	// Material
-	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, matAmb);
-	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, matDif);
-
-	// Seleciona o modo de GL_COLOR_MATERIAL
-	// faz com que uma cor de material acompanhe a cor atual
-	glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
-	glEnable(GL_COLOR_MATERIAL);
 
 	// Habilita Z-Buffer
 	// Realiza comparacoes de profundidade

@@ -57,18 +57,11 @@ void RotaX(VERT &in, VERT &out, float ang);
 
 
 OBJ *CarregaObjeto(char *nomeArquivo, bool mipmap);
-void CriaDisplayList(OBJ *obj);
-void DesabilitaDisplayList(OBJ *ptr);
 void DesenhaObjeto(OBJ *obj);
 void SetaModoDesenho(char modo);
 
-
 void LiberaObjeto(OBJ *obj);
 void LiberaMateriais();
-
-
-float CalculaQPS(void);
-void Escreve2D(float x, float y, char *str);
 
 void CalculaNormaisPorFace(OBJ *obj);
 

@@ -15,14 +15,6 @@ char _modo = 's'; // desenha sólidos sem textura
 int _numquadro =0, _tempo, _tempoAnterior = 0;
 float _ultqps = 0;
 
-#ifndef __FREEGLUT_EXT_H__
-void glutBitmapString(void *fonte,char *texto)
-{
-	while (*texto)
-    	glutBitmapCharacter(fonte, *texto++);
-}
-#endif
-
 void Normaliza(VERT &norm)
 {
 	float tam = sqrt(norm.x*norm.x
@@ -41,6 +33,7 @@ void ProdutoVetorial (VERT &v1, VERT &v2, VERT &vresult)
 	vresult.z = v1.x * v2.y - v1.y * v2.x;
 }
 
+// Calcula o produto vetorial e normaliza o vertor
 void VetorNormal(VERT vert1, VERT vert2, VERT vert3, VERT &n)
 {
     VERT vet1, vet2;
@@ -55,6 +48,20 @@ void VetorNormal(VERT vert1, VERT vert2, VERT vert3, VERT &n)
     Normaliza(n);
 }
 
+// Calcula o vetor normal de cada face de um objeto 3D
+void CalculaNormaisPorFace(OBJ *obj)
+{
+	int i;
+	if(obj->normais_por_vertice) return;
+	if ( ( obj->normais = (VERT *) malloc((sizeof(VERT)) * obj->numFaces) ) == NULL )
+			return;
+	for(i=0; i<obj->numFaces; i++)
+	VetorNormal(obj->vertices[obj->faces[i].vert[0]],
+		obj->vertices[obj->faces[i].vert[1]],
+		obj->vertices[obj->faces[i].vert[2]],obj->normais[i]);
+}
+
+// Rotaciona um vertice ao redor do eixo z
 void RotaZ(VERT &in, VERT &out, float ang)
 {
 	float arad = ang*M_PI/180.0;
@@ -63,6 +70,7 @@ void RotaZ(VERT &in, VERT &out, float ang)
 	out.z =  in.z;
 }
 
+// Rotaciona um vertice ao redor do eixo y
 void RotaY(VERT &in, VERT &out, float ang)
 {
 	float arad = ang*M_PI/180.0;
@@ -71,6 +79,7 @@ void RotaY(VERT &in, VERT &out, float ang)
 	out.z = in.x * sin(arad) + in.z * cos(arad);
 }
 
+// Rotaciona um vertice ao redor do eixo x
 void RotaX(VERT &in, VERT &out, float ang)
 {
 	float arad = ang*M_PI/180.0;
@@ -484,14 +493,3 @@ void LiberaMateriais()
 	_materiais.clear();
 }
 
-void CalculaNormaisPorFace(OBJ *obj)
-{
-	int i;
-	if(obj->normais_por_vertice) return;
-	if ( ( obj->normais = (VERT *) malloc((sizeof(VERT)) * obj->numFaces) ) == NULL )
-			return;
-	for(i=0; i<obj->numFaces; i++)
-	VetorNormal(obj->vertices[obj->faces[i].vert[0]],
-		obj->vertices[obj->faces[i].vert[1]],
-		obj->vertices[obj->faces[i].vert[2]],obj->normais[i]);
-}

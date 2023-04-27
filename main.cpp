@@ -1,6 +1,7 @@
 #include <GL/glut.h>
 #include <math.h>
 #include "bibutil.h"
+#include "myutil.h"
 #include <stdio.h>
 
 using namespace std;
@@ -395,93 +396,18 @@ void DesenhaMesas()
 
 void DesenhaMonitores()
 {
-	// monitores da parede dos fundos
-	// monitor
-	glPushMatrix();
-	glTranslatef(273, 65, 33);
-	glRotatef(-90, 0, 1, 0);
-	glScalef(90, 90, 90);
 	glColor3f(0.15, 0.15, 0.15);
-	DesenhaObjeto(monitor);
-	glPopMatrix();
 
-	// Retira a matriz do topo da pilha e torna esta última a matriz de transformação corrente
-	glPopMatrix();
-
-	// monitor
-	glPushMatrix();
-	glTranslatef(273, 65, -90);
-	glRotatef(-90, 0, 1, 0);
-	glScalef(90, 90, 90);
-	DesenhaObjeto(monitor);
-	glPopMatrix();
-
-	// monitor
-	glPushMatrix();
-	glTranslatef(273, 65, -213);
-	glRotatef(-90, 0, 1, 0);
-	glScalef(90, 90, 90);
-	DesenhaObjeto(monitor);
-	glPopMatrix();
-
-	// monitores da parede esquerda
-	// monitor
-	glPushMatrix();
-	glTranslatef(165, 65, -373);
-	glRotatef(0, 0, 1, 0);
-	glScalef(90, 90, 90);
-	DesenhaObjeto(monitor);
-	glPopMatrix();
-
-	// monitor
-	glPushMatrix();
-	glTranslatef(42, 65, -373);
-	glRotatef(0, 0, 1, 0);
-	glScalef(90, 90, 90);
-	DesenhaObjeto(monitor);
-	glPopMatrix();
-
-	// monitor
-	glPushMatrix();
-	glTranslatef(-81, 65, -373);
-	glRotatef(0, 0, 1, 0);
-	glScalef(90, 90, 90);
-	DesenhaObjeto(monitor);
-	glPopMatrix();
-
-	// monitor
-	glPushMatrix();
-	glTranslatef(-204, 65, -373);
-	glRotatef(0, 0, 1, 0);
-	glScalef(90, 90, 90);
-	DesenhaObjeto(monitor);
-	glPopMatrix();
-
-	// monitores da parede da frente
-	// monitor
-	glPushMatrix();
-	glTranslatef(-273, 65, 33);
-	glRotatef(90, 0, 1, 0);
-	glScalef(90, 90, 90);
-	glColor3f(0.15, 0.15, 0.15);
-	DesenhaObjeto(monitor);
-	glPopMatrix();
-
-	// monitor
-	glPushMatrix();
-	glTranslatef(-273, 65, -90);
-	glRotatef(90, 0, 1, 0);
-	glScalef(90, 90, 90);
-	DesenhaObjeto(monitor);
-	glPopMatrix();
-
-	// monitor
-	glPushMatrix();
-	glTranslatef(-273, 65, -213);
-	glRotatef(90, 0, 1, 0);
-	glScalef(90, 90, 90);
-	DesenhaObjeto(monitor);
-	glPopMatrix();
+	desenhaGeral(monitor, 273, 65, 33, -90, 0, 1, 0, 90, 90, 90);
+	desenhaGeral(monitor, 273, 65, -90, -90, 0, 1, 0, 90, 90, 90);
+	desenhaGeral(monitor, 273, 65, -213, -90, 0, 1, 0, 90, 90, 90);
+	desenhaGeral(monitor, 165, 65, -373, 0, 0, 1, 0, 90, 90, 90);
+	desenhaGeral(monitor, 42, 65, -373, 0, 0, 1, 0, 90, 90, 90);
+	desenhaGeral(monitor, -81, 65, -373, 0, 0, 1, 0, 90, 90, 90);
+	desenhaGeral(monitor, -273, 65, 33, 90, 0, 1, 0, 90, 90, 90);
+	desenhaGeral(monitor, -273, 65, -90, 90, 0, 1, 0, 90, 90, 90);
+	desenhaGeral(monitor, -273, 65, -213, 90, 0, 1, 0, 90, 90, 90);
+	desenhaGeral(monitor, -204, 65, -373, 0, 0, 1, 0, 90, 90, 90);
 }
 
 void DesenhaTeclados()

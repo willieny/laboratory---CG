@@ -31,6 +31,27 @@ GLfloat sentido = 1;
 #define SENS_ROT 5.0
 #define SENS_OBS 10.0
 
+// Luminosidade base de uma lampada
+#define LOW 0.3
+
+// Define parametros de iluminacao
+
+// Luz 1: pontual no teto, frente
+GLfloat luzAmb1[4] = {0.1, 0.1, 0.1, 1};   // luz ambiente
+GLfloat luzDif1[4] = {LOW, LOW, LOW, 1.0}; // luz difusa
+GLfloat luzEsp1[4] = {0.0, 0.0, 0.0, 1.0}; // luz especular
+GLfloat posLuz1[4] = {0, 200, 250, 1};	   // posicao da fonte de luz
+
+// Luz 2: pontual no teto, meio da sala
+GLfloat luzDif2[4] = {LOW, LOW, LOW, 1.0}; // luz difusa
+GLfloat posLuz2[4] = {0, 200, 0, 1};	   // posicao da fonte de luz
+
+// Luz 3: pontual no teto, atras
+GLfloat luzDif3[4] = {LOW, LOW, LOW, 1.0}; // luz difusa
+GLfloat posLuz3[4] = {0, 200, -250, 1};	   // posicao da fonte de luz
+
+bool luzes[6] = {true, true, true, false, false};
+
 // Objetos
 OBJ *plano,
 	*mesa,
@@ -738,6 +759,16 @@ void Desenha(void)
 
 	glEnable(GL_TEXTURE_2D);
 
+	// Agora posiciona a fonte de luz do meio da sala
+	// Agora posiciona demais fontes de luz
+	glLightfv(GL_LIGHT0, GL_POSITION, posLuz1);
+	glLightfv(GL_LIGHT1, GL_POSITION, posLuz2);
+	glLightfv(GL_LIGHT2, GL_POSITION, posLuz3);
+
+	// Luz spot
+	glLightf(GL_LIGHT4, GL_SPOT_CUTOFF, 70.0);
+	glLightf(GL_LIGHT4, GL_SPOT_EXPONENT, 10);
+
 	// Desenha todos os elementos da cena
 	DesenhaParedes();
 	DesenhaChao();
@@ -947,6 +978,43 @@ void Inicializa(void)
 {
 	// Define a cor de fundo da janela de visualizacao como preto
 	glClearColor(0, 0, 0, 1);
+
+	// Ajusta iluminacao
+	glLightfv(GL_LIGHT0, GL_AMBIENT, luzAmb1);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, luzDif1);
+	glLightfv(GL_LIGHT0, GL_SPECULAR, luzEsp1);
+	glLightfv(GL_LIGHT1, GL_AMBIENT, luzAmb1);
+	glLightfv(GL_LIGHT1, GL_DIFFUSE, luzDif2);
+	glLightfv(GL_LIGHT2, GL_AMBIENT, luzAmb1);
+	glLightfv(GL_LIGHT2, GL_DIFFUSE, luzDif3);
+	glLightfv(GL_LIGHT3, GL_AMBIENT, luzAmb1);
+
+	// Habilita todas as fontes de luz
+	glEnable(GL_LIGHT0);
+	glEnable(GL_LIGHT1);
+	glEnable(GL_LIGHT2);
+	glEnable(GL_LIGHT3);
+	glEnable(GL_LIGHT4);
+	glEnable(GL_LIGHTING);
+
+	// Define coeficientes ambiente e difuso
+	// do material
+	GLfloat matAmb[4] = {0.2, 0.2, 0.2, 1};
+	GLfloat matDif[4] = {1, 1, 1, 1};
+
+	// Material
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, matAmb);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, matDif);
+
+	// Seleciona o modo de GL_COLOR_MATERIAL
+	// faz com que uma cor de material acompanhe a cor atual
+	glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
+	glEnable(GL_COLOR_MATERIAL);
+
+	// Habilita normalizacao automatica
+	// Vetores normais sao normalizados para valores unitarios
+	// apos transformacao e antes da iluminacao
+	glEnable(GL_NORMALIZE);
 
 	// Habilita Z-Buffer
 	// Realiza comparacoes de profundidade

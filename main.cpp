@@ -1,10 +1,45 @@
 #include <GL/glut.h>
 #include <math.h>
-#include "bibutil.h"
-#include "myutil.h"
 #include <stdio.h>
+#include "bibutil.h"
+#include "bibutilNoTex.h"
+#include "myutil.h"
 
 using namespace std;
+
+typedef struct {
+	char nome[50];			
+	int ncomp;				
+	GLint dimx;				
+	GLint dimy;				
+	GLuint texid;			
+	unsigned char *data;
+} TEX;
+
+TEX *chao;
+
+// Filtros de textura
+GLint filtros[] = {
+       GL_NEAREST, GL_LINEAR,
+       GL_NEAREST_MIPMAP_NEAREST,GL_LINEAR_MIPMAP_NEAREST,
+       GL_NEAREST_MIPMAP_LINEAR, GL_LINEAR_MIPMAP_LINEAR
+};
+
+// Define filtro inicial como GL_NEAREST_MIPMAP_LINEAR
+int filtro = 4;
+
+// Define modo inicial de aplicacao da textura
+GLint modo = GL_MODULATE;
+
+// Define modo de desenho inicial: textura
+char modo_des = 't';
+
+void SetaEscalaTextura(float x,float y) {
+	glMatrixMode(GL_TEXTURE);
+	glLoadIdentity();
+	glScalef(x,y,1);
+	glMatrixMode(GL_MODELVIEW);
+}
 
 // Variaveis para controle da projecao
 GLfloat fAspect;
@@ -18,6 +53,7 @@ GLfloat x_trans_angle = 0.430,
 // Variaveis para controle da janela
 #define ANGLEE_WINDOW_MAX -180
 #define ANGLED_WINDOW_MAX 180
+
 GLfloat xE_trans_angle = 0.430,
 		xD_trans_angle = -0.430,
 		angleE_window = 0,
@@ -83,108 +119,34 @@ int x_ini,
 	y_ini,
 	bot;
 
-// Arquivo de cena e arquivo de camera
-// Desenha 4 paredes
-void DesenhaParedes(void)
-{
-	// Insere a matriz de transformação corrente na pilha
-	// Parede esquerda
-	glPushMatrix();
-	glTranslatef(300, 150, 0);
-	glRotatef(-90, 0, 1, 0);
+void DesenhaSala() {
+
+	// paredes
 	glColor3f(0.92, 0.92, 0.92);
-	glScalef(8, 3, 1);
-	DesenhaObjeto(plano);
-	glPopMatrix();
 
-	// Parede direita
-	glPushMatrix();
-	glTranslatef(-300, 150, 0);
-	glRotatef(90, 0, 1, 0);
-	glScalef(8, 3, 1); // 8 m x 3 m
-	DesenhaObjeto(plano);
-	glPopMatrix();
+	desenhaGeral(plano, 300, 150, 0, -90, 0, 1, 0, 8, 3, 1);        // esquerda
+	desenhaGeral(plano, -300, 150, 0, 90, 0, 1, 0, 8, 3, 1);        // direita
 
-	// Parede superior dos fundos
-	glPushMatrix();
-	glTranslatef(0, 274.5, -400);
-	glScalef(6, 0.52, 1);
-	DesenhaObjeto(plano);
-	glPopMatrix();
+	// fundos
+	desenhaGeral(plano, 0, 274.5, -400, 0, 0, 1, 0, 6, 0.52, 1);    // superior
+	desenhaGeral(plano, 0, 65.5, -400, 0, 0, 0, 0, 6, 1.315, 1);    // inferior
+	desenhaGeral(plano, 0, 190, -400, 0, 0, 0, 0, 1.69, 1.2, 1);    // meio
+	desenhaGeral(plano, 243, 190, -400, 0, 0, 0, 0, 1.14, 1.2, 1);  // direita
+	desenhaGeral(plano, -243, 190, -400, 0, 0, 0, 0, 1.14, 1.2, 1); // esquerda
 
-	// Parede inferior dos fundos
-	glPushMatrix();
-	glTranslatef(0, 65.5, -400);
-	glScalef(6, 1.315, 1);
-	DesenhaObjeto(plano);
-	glPopMatrix();
+	// frente
+	desenhaGeral(plano, 0, 250, 400, 180, 0, 1, 0, 6, 1, 1);        // superior
+	desenhaGeral(plano, 87.5, 100, 400, 180, 0, 1, 0, 4.25, 2, 1);  // esquerda
+	desenhaGeral(plano, -257, 100, 400, 180, 0, 1, 0, 0.86, 2, 1);  // direita
 
-	// Parede do meio dos fundos
-	glPushMatrix();
-	glTranslatef(0, 190, -400);
-	glScalef(1.69, 1.2, 1);
-	DesenhaObjeto(plano);
-	glPopMatrix();
-
-	// Parede direita dos fundos
-	glPushMatrix();
-	glTranslatef(243, 190, -400);
-	glScalef(1.14, 1.2, 1);
-	DesenhaObjeto(plano);
-	glPopMatrix();
-
-	// Parede esquerda dos fundos
-	glPushMatrix();
-	glTranslatef(-243, 190, -400);
-	glScalef(1.14, 1.2, 1);
-	DesenhaObjeto(plano);
-	glPopMatrix();
-
-	// Parte superior da frente
-	glPushMatrix();
-	glTranslatef(0, 250, 400);
-	glRotatef(180, 0, 1, 0);
-	glScalef(6, 1, 1);
-	DesenhaObjeto(plano);
-	glPopMatrix();
-
-	// Parte esquerda da frente
-	glPushMatrix();
-	glTranslatef(87.5, 100, 400);
-	glRotatef(180, 0, 1, 0);
-	glScalef(4.25, 2, 1);
-	DesenhaObjeto(plano);
-	glPopMatrix();
-
-	// Parte direita da frente
-	glPushMatrix();
-	glTranslatef(-257, 100, 400);
-	glRotatef(180, 0, 1, 0);
-	glScalef(0.86, 2, 1);
-	DesenhaObjeto(plano);
-	glPopMatrix();
-}
-
-void DesenhaChao(void)
-{
-	glPushMatrix();
-	glTranslatef(0, 0, 0);
-	glRotatef(-90, 1, 0, 0);
-	glScalef(6, 8, 1);
+	// chão
+	SetaEscalaTextura(8,8);
 	glColor3f(0.80, 0.80, 0.80);
-	DesenhaObjeto(plano);
-	glPopMatrix();
-}
+	desenhaGeral(plano, 0, 0, 0, -90, 1, 0, 0, 6, 8, 1);
 
-void DesenhaTeto(void)
-{
-	glPushMatrix();
-	glTranslatef(0, 300, 0);
-	glRotatef(90, 1, 0, 0);
-	glScalef(6, 8, 1);
+	// teto
 	glColor3f(0.90, 0.90, 0.90);
-	DesenhaObjeto(plano);
-	glPopMatrix();
+	desenhaGeral(plano, 0, 300, 0, 90, 1, 0, 0, 6, 8, 1);
 }
 
 void DesenhaPorta()
@@ -203,8 +165,7 @@ void DesenhaPorta()
 	glPopMatrix();
 }
 
-void DesenhaJanela()
-{
+void DesenhaJanela() {
 	// Janela Direita
 	// JanelaE
 	glPushMatrix();
@@ -217,6 +178,7 @@ void DesenhaJanela()
 	glTranslatef(-xE_trans_angle, 0, 0);
 	DesenhaObjeto(janela);
 	glPopMatrix();
+
 	// JanelaD
 	glPushMatrix();
 	glTranslatef(160, 130, -399);
@@ -241,6 +203,7 @@ void DesenhaJanela()
 	glTranslatef(-xE_trans_angle, 0, 0);
 	DesenhaObjeto(janela);
 	glPopMatrix();
+
 	// JanelaD
 	glPushMatrix();
 	glTranslatef(-110, 130, -399);
@@ -254,37 +217,25 @@ void DesenhaJanela()
 	glPopMatrix();
 }
 
-void DesenhaVentiladores()
-{
+void DesenhaVentiladores() {
 
-	// Base
-	glPushMatrix();
-	glTranslatef(0, 252, 180);
-	glScalef(40, 40, 40);
-	glRotatef(-180, 0, 1, 0);
 	glColor3f(0.75, 0.75, 0.75);
-	DesenhaObjeto(base);
-	glPopMatrix();
+	desenhaGeral(base, 0, 252, 180, -180, 0, 1, 0, 40, 40, 40);
 
 	// Hélice
+	glColor3f(0.85, 0.85, 0.85);
 	glPushMatrix();
 	glTranslatef(0, 255, 180);
 	glScalef(370, 100, 370);
 	glRotatef(90, 1, 0, 0);
 	glRotatef(90, 0, 0, 1);
-	glColor3f(0.85, 0.85, 0.85);
 	glRotatef(angulo, 0, 0, 1);
 	DesenhaObjeto(helice);
 	glPopMatrix();
 
 	// Base
-	glPushMatrix();
-	glTranslatef(0, 252, -180);
-	glScalef(40, 40, 40);
-	glRotatef(-180, 0, 1, 0);
 	glColor3f(0.75, 0.75, 0.75);
-	DesenhaObjeto(base);
-	glPopMatrix();
+	desenhaGeral(base, 0, 252, -180, -180, 0, 1, 0, 40, 40, 40);
 
 	// Hélice
 	glPushMatrix();
@@ -298,125 +249,26 @@ void DesenhaVentiladores()
 	glPopMatrix();
 }
 
-void DesenhaMesas()
-{
-	// mesas parede dos fundos
-	// mesa
-	glPushMatrix();
-	glTranslatef(263, 0, 33);
-	glRotatef(90, 0, 1, 0);
-	glScalef(90, 90, 90);
-	glColor3f(1, 1, 1);
-	DesenhaObjeto(mesa);
-	glPopMatrix();
+void DesenhaMesas() {
 
-	// Retira a matriz do topo da pilha e torna esta última a matriz de transformação corrente
-	glPopMatrix();
-
-	// mesa
-	glPushMatrix();
-	glTranslatef(263, 0, -90);
-	glRotatef(90, 0, 1, 0);
-	glScalef(90, 90, 90);
 	glColor3f(1, 1, 1);
-	DesenhaObjeto(mesa);
-	glPopMatrix();
 
-	// mesa
-	glPushMatrix();
-	glTranslatef(263, 0, -213);
-	glRotatef(90, 0, 1, 0);
-	glScalef(90, 90, 90);
-	glColor3f(1, 1, 1);
-	DesenhaObjeto(mesa);
-	glPopMatrix();
-
-	// mesa
-	glPushMatrix();
-	glTranslatef(263, 0, -336);
-	glRotatef(90, 0, 1, 0);
-	glScalef(90, 90, 90);
-	glColor3f(1, 1, 1);
-	DesenhaObjeto(mesa);
-	glPopMatrix();
-
-	// mesas da parede esquerda
-	// mesa
-	glPushMatrix();
-	glTranslatef(165, 0, -363);
-	glRotatef(-180, 0, 1, 0);
-	glScalef(90, 90, 90);
-	glColor3f(1, 1, 1);
-	DesenhaObjeto(mesa);
-	glPopMatrix();
-
-	// mesa
-	glPushMatrix();
-	glTranslatef(42, 0, -363);
-	glRotatef(-180, 0, 1, 0);
-	glScalef(90, 90, 90);
-	glColor3f(1, 1, 1);
-	DesenhaObjeto(mesa);
-	glPopMatrix();
-
-	// mesa
-	glPushMatrix();
-	glTranslatef(-81, 0, -363);
-	glRotatef(-180, 0, 1, 0);
-	glScalef(90, 90, 90);
-	glColor3f(1, 1, 1);
-	DesenhaObjeto(mesa);
-	glPopMatrix();
-
-	// mesa
-	glPushMatrix();
-	glTranslatef(-204, 0, -363);
-	glRotatef(-180, 0, 1, 0);
-	glScalef(90, 90, 90);
-	glColor3f(1, 1, 1);
-	DesenhaObjeto(mesa);
-	glPopMatrix();
-
-	// mesas da parede da frente
-	// mesa
-	glPushMatrix();
-	glTranslatef(-263, 0, 33);
-	glRotatef(-90, 0, 1, 0);
-	glScalef(90, 90, 90);
-	glColor3f(1, 1, 1);
-	DesenhaObjeto(mesa);
-	glPopMatrix();
-
-	// mesa
-	glPushMatrix();
-	glTranslatef(-263, 0, -90);
-	glRotatef(-90, 0, 1, 0);
-	glScalef(90, 90, 90);
-	glColor3f(1, 1, 1);
-	DesenhaObjeto(mesa);
-	glPopMatrix();
-
-	// mesa
-	glPushMatrix();
-	glTranslatef(-263, 0, -213);
-	glRotatef(-90, 0, 1, 0);
-	glScalef(90, 90, 90);
-	glColor3f(1, 1, 1);
-	DesenhaObjeto(mesa);
-	glPopMatrix();
-
-	// mesa
-	glPushMatrix();
-	glTranslatef(-263, 0, -336);
-	glRotatef(-90, 0, 1, 0);
-	glScalef(90, 90, 90);
-	glColor3f(1, 1, 1);
-	DesenhaObjeto(mesa);
-	glPopMatrix();
+	desenhaGeral(mesa, 263, 0, 33, 90, 0, 1, 0, 90, 90, 90);
+	desenhaGeral(mesa, 263, 0, -90, 90, 0, 1, 0, 90, 90, 90);
+	desenhaGeral(mesa, 263, 0, -213, 90, 0, 1, 0, 90, 90, 90);
+	desenhaGeral(mesa, 263, 0, -336, 90, 0, 1, 0, 90, 90, 90);
+	desenhaGeral(mesa, 165, 0, -363, -180, 0, 1, 0, 90, 90, 90);
+	desenhaGeral(mesa, 42, 0, -363, -180, 0, 1, 0, 90, 90, 90);
+	desenhaGeral(mesa, -81, 0, -363, -180, 0, 1, 0, 90, 90, 90);
+	desenhaGeral(mesa, -204, 0, -363, -180, 0, 1, 0, 90, 90, 90);
+	desenhaGeral(mesa, -263, 0, 33, -90, 0, 1, 0, 90, 90, 90);
+	desenhaGeral(mesa, -263, 0, -90, -90, 0, 1, 0, 90, 90, 90);
+	desenhaGeral(mesa, -263, 0, -213, -90, 0, 1, 0, 90, 90, 90);
+	desenhaGeral(mesa, -263, 0, -336, -90, 0, 1, 0, 90, 90, 90);
 }
 
-void DesenhaMonitores()
-{
+void DesenhaMonitores() {
+
 	glColor3f(0.15, 0.15, 0.15);
 
 	desenhaGeral(monitor, 273, 65, 33, -90, 0, 1, 0, 90, 90, 90);
@@ -431,319 +283,77 @@ void DesenhaMonitores()
 	desenhaGeral(monitor, -204, 65, -373, 0, 0, 1, 0, 90, 90, 90);
 }
 
-void DesenhaTeclados()
-{
-	// teclados da parede dos fundos
-	// teclado
-	glPushMatrix();
-	glTranslatef(251, 65, 33);
-	glRotatef(-90, 0, 1, 0);
-	glScalef(90, 90, 90);
+void DesenhaTeclados() {
+
 	glColor3f(0.15, 0.15, 0.15);
-	DesenhaObjeto(teclado);
-	glPopMatrix();
 
-	// Retira a matriz do topo da pilha e torna esta última a matriz de transformação corrente
-	glPopMatrix();
-
-	// teclado
-	glPushMatrix();
-	glTranslatef(251, 65, -90);
-	glRotatef(-90, 0, 1, 0);
-	glScalef(90, 90, 90);
-	DesenhaObjeto(teclado);
-	glPopMatrix();
-
-	// teclado
-	glPushMatrix();
-	glTranslatef(251, 65, -213);
-	glRotatef(-90, 0, 1, 0);
-	glScalef(90, 90, 90);
-	DesenhaObjeto(teclado);
-	glPopMatrix();
-
-	// teclados da parede esquerda
-	// teclado
-	glPushMatrix();
-	glTranslatef(165, 65, -351);
-	glRotatef(0, 0, 1, 0);
-	glScalef(90, 90, 90);
-	DesenhaObjeto(teclado);
-	glPopMatrix();
-
-	// teclado
-	glPushMatrix();
-	glTranslatef(42, 65, -351);
-	glRotatef(0, 0, 1, 0);
-	glScalef(90, 90, 90);
-	DesenhaObjeto(teclado);
-	glPopMatrix();
-
-	// teclado
-	glPushMatrix();
-	glTranslatef(-81, 65, -351);
-	glRotatef(0, 0, 1, 0);
-	glScalef(90, 90, 90);
-	DesenhaObjeto(teclado);
-	glPopMatrix();
-
-	// teclado
-	glPushMatrix();
-	glTranslatef(-204, 65, -351);
-	glRotatef(0, 0, 1, 0);
-	glScalef(90, 90, 90);
-	DesenhaObjeto(teclado);
-	glPopMatrix();
-
-	// teclados da parede da frente
-	// teclado
-	glPushMatrix();
-	glTranslatef(-251, 65, 33);
-	glRotatef(90, 0, 1, 0);
-	glScalef(90, 90, 90);
-	glColor3f(0.15, 0.15, 0.15);
-	DesenhaObjeto(teclado);
-	glPopMatrix();
-
-	// teclado
-	glPushMatrix();
-	glTranslatef(-251, 65, -90);
-	glRotatef(90, 0, 1, 0);
-	glScalef(90, 90, 90);
-	DesenhaObjeto(teclado);
-	glPopMatrix();
-
-	// teclado
-	glPushMatrix();
-	glTranslatef(-251, 65, -213);
-	glRotatef(90, 0, 1, 0);
-	glScalef(90, 90, 90);
-	DesenhaObjeto(teclado);
-	glPopMatrix();
+	desenhaGeral(teclado, 251, 65, 33, -90, 0, 1, 0, 90, 90, 90);
+	desenhaGeral(teclado, 251, 65, -90, -90, 0, 1, 0, 90, 90, 90);
+	desenhaGeral(teclado, 251, 65, -213, -90, 0, 1, 0, 90, 90, 90);
+	desenhaGeral(teclado, 165, 65, -351, 0, 0, 1, 0, 90, 90, 90);
+	desenhaGeral(teclado, 42, 65, -351, 0, 0, 1, 0, 90, 90, 90);
+	desenhaGeral(teclado, -81, 65, -351, 0, 0, 1, 0, 90, 90, 90);
+	desenhaGeral(teclado, -204, 65, -351, 0, 0, 1, 0, 90, 90, 90);
+	desenhaGeral(teclado, -251, 65, 33, 90, 0, 1, 0, 90, 90, 90);
+	desenhaGeral(teclado, -251, 65, -90, 90, 0, 1, 0, 90, 90, 90);
+	desenhaGeral(teclado, -251, 65, -213, 90, 0, 1, 0, 90, 90, 90);
 }
 
-void DesenhaMouses()
-{
-	// mouses da parede dos fundos
-	// mouse
-	glPushMatrix();
-	glTranslatef(251, 65, 63);
-	glRotatef(-90, 0, 1, 0);
-	glScalef(90, 90, 90);
+void DesenhaMouses() {
+	
 	glColor3f(0.15, 0.15, 0.15);
-	DesenhaObjeto(mouse);
-	glPopMatrix();
 
-	// Retira a matriz do topo da pilha e torna esta última a matriz de transformação corrente
-	glPopMatrix();
-
-	// mouse
-	glPushMatrix();
-	glTranslatef(251, 65, -60);
-	glRotatef(-90, 0, 1, 0);
-	glScalef(90, 90, 90);
-	DesenhaObjeto(mouse);
-	glPopMatrix();
-
-	// mouse
-	glPushMatrix();
-	glTranslatef(251, 65, -183);
-	glRotatef(-90, 0, 1, 0);
-	glScalef(90, 90, 90);
-	DesenhaObjeto(mouse);
-	glPopMatrix();
-
-	// mouses da parede esquerda
-	// mouse
-	glPushMatrix();
-	glTranslatef(195, 65, -351);
-	glRotatef(0, 0, 1, 0);
-	glScalef(90, 90, 90);
-	DesenhaObjeto(mouse);
-	glPopMatrix();
-
-	// mouse
-	glPushMatrix();
-	glTranslatef(72, 65, -351);
-	glRotatef(0, 0, 1, 0);
-	glScalef(90, 90, 90);
-	DesenhaObjeto(mouse);
-	glPopMatrix();
-
-	// mouse
-	glPushMatrix();
-	glTranslatef(-51, 65, -351);
-	glRotatef(0, 0, 1, 0);
-	glScalef(90, 90, 90);
-	DesenhaObjeto(mouse);
-	glPopMatrix();
-
-	// mouse
-	glPushMatrix();
-	glTranslatef(-174, 65, -351);
-	glRotatef(0, 0, 1, 0);
-	glScalef(90, 90, 90);
-	DesenhaObjeto(mouse);
-	glPopMatrix();
-
-	// mouses da parede da frente
-	// mouse
-	glPushMatrix();
-	glTranslatef(-251, 65, 3);
-	glRotatef(90, 0, 1, 0);
-	glScalef(90, 90, 90);
-	DesenhaObjeto(mouse);
-	glPopMatrix();
-
-	// mouse
-	glPushMatrix();
-	glTranslatef(-251, 65, -120);
-	glRotatef(90, 0, 1, 0);
-	glScalef(90, 90, 90);
-	DesenhaObjeto(mouse);
-	glPopMatrix();
-
-	// mouse
-	glPushMatrix();
-	glTranslatef(-251, 65, -243);
-	glRotatef(90, 0, 1, 0);
-	glScalef(90, 90, 90);
-	DesenhaObjeto(mouse);
-	glPopMatrix();
+	desenhaGeral(mouse, 251, 65, 63, -90, 0, 1, 0, 90, 90, 90);
+	desenhaGeral(mouse, 251, 65, -60, -90, 0, 1, 0, 90, 90, 90);
+	desenhaGeral(mouse, 251, 65, -183, -90, 0, 1, 0, 90, 90, 90);
+	desenhaGeral(mouse, 195, 65, -351, 0, 0, 1, 0, 90, 90, 90);
+	desenhaGeral(mouse, 72, 65, -351, 0, 0, 1, 0, 90, 90, 90);
+	desenhaGeral(mouse, -51, 65, -351, 0, 0, 1, 0, 90, 90, 90);
+	desenhaGeral(mouse, -174, 65, -351, 0, 0, 1, 0, 90, 90, 90);
+	desenhaGeral(mouse, -251, 65, 3, 90, 0, 1, 0, 90, 90, 90);
+	desenhaGeral(mouse, -251, 65, -120, 90, 0, 1, 0, 90, 90, 90);
+	desenhaGeral(mouse, -251, 65, -243, 90, 0, 1, 0, 90, 90, 90);
 }
 
-void DesenhaCadeiras()
-{
-	// cadeiras da parede dos fundos
-	// cadeira
-	glPushMatrix();
-	glTranslatef(221, 0, 33);
-	glRotatef(90, 0, 1, 0);
-	glScalef(90, 90, 90);
+void DesenhaCadeiras() {
+
 	glColor3f(0, 0, 0.35);
-	DesenhaObjeto(cadeira);
-	glPopMatrix();
 
-	// Retira a matriz do topo da pilha e torna esta última a matriz de transformação corrente
-	glPopMatrix();
-
-	// cadeira
-	glPushMatrix();
-	glTranslatef(221, 0, -90);
-	glRotatef(90, 0, 1, 0);
-	glScalef(90, 90, 90);
-	DesenhaObjeto(cadeira);
-	glPopMatrix();
-
-	// cadeira
-	glPushMatrix();
-	glTranslatef(221, 0, -213);
-	glRotatef(90, 0, 1, 0);
-	glScalef(90, 90, 90);
-	DesenhaObjeto(cadeira);
-	glPopMatrix();
-
-	// cadeiras da parede esquerda
-	// cadeira
-	glPushMatrix();
-	glTranslatef(165, 0, -321);
-	glRotatef(180, 0, 1, 0);
-	glScalef(90, 90, 90);
-	DesenhaObjeto(cadeira);
-	glPopMatrix();
-
-	// cadeira
-	glPushMatrix();
-	glTranslatef(42, 0, -321);
-	glRotatef(180, 0, 1, 0);
-	glScalef(90, 90, 90);
-	DesenhaObjeto(cadeira);
-	glPopMatrix();
-
-	// cadeira
-	glPushMatrix();
-	glTranslatef(-81, 0, -321);
-	glRotatef(180, 0, 1, 0);
-	glScalef(90, 90, 90);
-	DesenhaObjeto(cadeira);
-	glPopMatrix();
-
-	// cadeira
-	glPushMatrix();
-	glTranslatef(-204, 0, -321);
-	glRotatef(180, 0, 1, 0);
-	glScalef(90, 90, 90);
-	DesenhaObjeto(cadeira);
-	glPopMatrix();
-
-	// cadeiras da parede da frente
-	// cadeira
-	glPushMatrix();
-	glTranslatef(-221, 0, 33);
-	glRotatef(-90, 0, 1, 0);
-	glScalef(90, 90, 90);
-	DesenhaObjeto(cadeira);
-	glPopMatrix();
-
-	// cadeira
-	glPushMatrix();
-	glTranslatef(-221, 0, -90);
-	glRotatef(-90, 0, 1, 0);
-	glScalef(90, 90, 90);
-	DesenhaObjeto(cadeira);
-	glPopMatrix();
-
-	// cadeira
-	glPushMatrix();
-	glTranslatef(-221, 0, -213);
-	glRotatef(-90, 0, 1, 0);
-	glScalef(90, 90, 90);
-	DesenhaObjeto(cadeira);
-	glPopMatrix();
+	desenhaGeral(cadeira, 221, 0, 33, 90, 0, 1, 0, 90, 90, 90);
+	desenhaGeral(cadeira, 221, 0, -90, 90, 0, 1, 0, 90, 90, 90);
+	desenhaGeral(cadeira, 221, 0, -213, 90, 0, 1, 0, 90, 90, 90);
+	desenhaGeral(cadeira, 165, 0, -321, 180, 0, 1, 0, 90, 90, 90);
+	desenhaGeral(cadeira, 42, 0, -321, 180, 0, 1, 0, 90, 90, 90);
+	desenhaGeral(cadeira, -81, 0, -321, 180, 0, 1, 0, 90, 90, 90);
+	desenhaGeral(cadeira, -204, 0, -321, 180, 0, 1, 0, 90, 90, 90);
+	desenhaGeral(cadeira, -221, 0, 33, -90, 0, 1, 0, 90, 90, 90);
+	desenhaGeral(cadeira, -221, 0, -90, -90, 0, 1, 0, 90, 90, 90);
+	desenhaGeral(cadeira, -221, 0, -213, -90, 0, 1, 0, 90, 90, 90);
 }
 
-void DesenhaObjExtra()
-{
-	// lampada (obj1)
+void DesenhaObjExtra() {
+	
+	glColor3f(0.9, 0.9, 0);
+
 	glPushMatrix();
 	glTranslatef(0, 297, 0);
 	glRotatef(90, 1, 0, 0);
 	glRotatef(90, 0, 0, 1);
-	glColor3f(0.9, 0.9, 0);
 	DesenhaObjeto(lamp);
 	glPopMatrix();
 
-	// interruptor
-	glPushMatrix();
-	glTranslatef(-80, 105, 397.5);
-	glRotatef(-180, 0, 1, 0);
-	glScalef(120, 120, 120);
 	glColor3f(0.90, 0.90, 0.90);
-	DesenhaObjeto(interruptor);
-	glPopMatrix();
+	desenhaGeral(interruptor, -80, 105, 397.5, -180, 0, 1, 0, 120, 120, 120);
 
-	// lousa
-	glPushMatrix();
-	glTranslatef(90, 165, 397.5);
-	glRotatef(-180, 0, 1, 0);
-	glScalef(0.5, 0.65, 0.5);
 	glColor3f(1, 1, 1);
-	DesenhaObjeto(lousa);
-	glPopMatrix();
+	desenhaGeral(lousa, 90, 165, 397.5, -180, 0, 1, 0, 0.5, 0.65, 0.5);
 
-	// lixeira
-	glPushMatrix();
-	glTranslatef(-60, 0, 380);
-	glRotatef(-180, 0, 1, 0);
-	glScalef(120, 120, 120);
 	glColor3f(0.15, 0.15, 0.15);
-	DesenhaObjeto(lixeira);
-	glPopMatrix();
+	desenhaGeral(lixeira, -60, 0, 380, -180, 0, 1, 0, 120, 120, 120);
 }
 
 // Desenha toda a cena
-void Desenha(void)
-{
+void Desenha(void) {
 	// Limpa a janela de visualizacao com a cor
 	// de fundo definida previamente
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -770,9 +380,7 @@ void Desenha(void)
 	glLightf(GL_LIGHT4, GL_SPOT_EXPONENT, 10);
 
 	// Desenha todos os elementos da cena
-	DesenhaParedes();
-	DesenhaChao();
-	DesenhaTeto();
+	DesenhaSala();
 	DesenhaPorta();
 	DesenhaJanela();
 	DesenhaVentiladores();

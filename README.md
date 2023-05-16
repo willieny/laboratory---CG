@@ -17,7 +17,7 @@ sudo apt-get install libglu1-mesa-dev freeglut3-dev mesa-common-dev libglew-dev
 Feito isto, compile o projeto com o comando:
 
 ```shell
-g++ main.cpp bibutil.cpp myutil.cpp -o main -lGL -lGLU -lglut
+g++ main.cpp bibutil.cpp myutil.cpp bibutilNoTex.cpp -o main -lGL -lGLU -lglut
 ```
 
 Em seguida, basta rodar o comando `./main` para executar o programa.

@@ -10,7 +10,7 @@
 
 using namespace std;
 
-TEX *parede, *chao, *teto, *tabua, *telalousa, *tecido, *metalico, *grama, *foto;
+TEX *parede, *chao, *teto, *tabua, *telalousa, *tecido, *metalico, *grama, *foto, *portaTex;
 
 // Filtros de textura
 GLint filtros[] = {
@@ -197,6 +197,7 @@ void DesenhaSala() {
 void DesenhaPorta()
 {
 	// Desenha a porta
+	SetaEscalaTextura(1, 1);
 	glPushMatrix();
 
 	glTranslatef(-170, 0, 397.5);
@@ -206,6 +207,7 @@ void DesenhaPorta()
 	glTranslatef(x_trans_angle, 0, 0);
 	glRotated(angle_door, 0, 1, 0);
 	glTranslatef(-x_trans_angle, 0, 0);
+	porta->textura = portaTex->texid;
 	DesenhaObjeto(porta);
 	glPopMatrix();
 }
@@ -701,6 +703,7 @@ void Inicializa(void)
 	metalico = CarregaTextura("texturas/metalico.jpg", true);
 	grama = CarregaTextura("texturas/grama.jpg", true);
 	foto = CarregaTextura("texturas/prof.jpg", true);
+	portaTex = CarregaTextura("texturas/portaTex.jpg", true);
 
 	// Seleciona o modo de aplicacao da textura
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, modo);

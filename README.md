@@ -35,6 +35,6 @@ Em seguida, basta rodar o comando `./main` para executar o programa.
 - [x] Criar a iluminação do Laboratório;
 - [x] 3 Fontes de Luz simulando uma luminária com spot sob as Mesas do Laboratório;
 - [x] Utilizar Iluminação (especular e difusa);
-- [ ] Aplicar mapeamento de textura em 5 objetos;
+- [x] Aplicar mapeamento de textura em 5 objetos;
 - [x] Criar um modelo de iluminação para simular o efeito noite e dia na modelagem.
 - [x] Refinar a modelagem realizada no primeiro Bimestre;

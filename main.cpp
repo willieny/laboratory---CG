@@ -10,7 +10,7 @@
 
 using namespace std;
 
-TEX *parede, *chao, *teto, *tabua, *telalousa, *tecido, *metalico;
+TEX *parede, *chao, *teto, *tabua, *telalousa, *tecido, *metalico, *grama, *foto;
 
 // Filtros de textura
 GLint filtros[] = {
@@ -85,19 +85,19 @@ GLfloat luzDif4[4] = {0.4, 0.2, 0.0, 1.0}; // luz difusa
 GLfloat posLuz4[4] = {0.4, 0.4, 1, 0};	   // posicao da fonte de luz
 
 GLfloat luzAmb5[4] = {0.2, 0.2, 0.2, 1.0}; // luz ambiente
-GLfloat luzDif5[4] = {1, 1, 1, 1}; // luz difusa
+GLfloat luzDif5[4] = {1, 1, 0.7, 1}; // luz difusa
 GLfloat luzEsp5[4] = {0, 0, 0, 1.0}; // luz especular
 GLfloat posLuz5[4] = {250, 105, -13, 1.0};	   // posicao da fonte de luz
 GLfloat dirLuz5[3] = {0, -1, 1};	   // posicao da fonte de luz
 
 GLfloat luzAmb6[4] = {0.2, 0.2, 0.2, 1.0}; // luz ambiente
-GLfloat luzDif6[4] = {1, 1, 1, 1}; // luz difusa
+GLfloat luzDif6[4] = {1, 1, 0.7, 1}; // luz difusa
 GLfloat luzEsp6[4] = {0, 0, 0, 1.0}; // luz especular
 GLfloat posLuz6[4] = {-250, 105, -13, 1.0};	   // posicao da fonte de luz
 GLfloat dirLuz6[3] = {0, -1, 1};	   // posicao da fonte de luz
 
 GLfloat luzAmb7[4] = {0.2, 0.2, 0.2, 1.0}; // luz ambiente
-GLfloat luzDif7[4] = {1, 1, 1, 1}; // luz difusa
+GLfloat luzDif7[4] = {1, 1, 0.7, 1}; // luz difusa
 GLfloat luzEsp7[4] = {0, 0, 0, 1.0}; // luz especular
 GLfloat posLuz7[4] = {-20, 85, -380, 1.0};	   // posicao da fonte de luz
 GLfloat dirLuz7[3] = {0, -1, 1};	   // posicao da fonte de luz
@@ -124,7 +124,8 @@ OBJ *plano,
 	*lixeira,
 	*base,
 	*helice,
-	*luminaria;
+	*luminaria,
+	*quadro;
 
 // Define variaveis para navegacao
 GLfloat rotX = 0,
@@ -186,6 +187,11 @@ void DesenhaSala() {
 	SetaEscalaTextura(6, 8);
 	glColor3f(0.90, 0.90, 0.90);
 	desenhaGeralTextura(plano, 0, 300, 0, 90, 1, 0, 0, 6, 8, 1, teto);
+
+	// Grama
+	SetaEscalaTextura(5, 5);
+	glColor3f(0.2, 1.0, 0.2);
+	desenhaGeralTextura(plano, 0, -0.1, 0, -90, 1, 0, 0, 20, 20, 1, grama);
 }
 
 void DesenhaPorta()
@@ -377,7 +383,7 @@ void DesenhaCadeiras() {
 }
 
 void DesenhaLamps() {
-	glColor3f(0.9, 0.9, 0.9);
+	glColor3f(0.9, 0.9, 0.5);
 	desenhaGeral(luminaria, 250, 65, -13, 0, 0, 0, 0, 90, 90, 90);
 	desenhaGeral(luminaria, -250, 65, -13, 0, 0, 0, 0, 90, 90, 90);
 	desenhaGeral(luminaria, -20, 65, -380, 0, 0, 0, 0, 90, 90, 90);
@@ -399,6 +405,10 @@ void DesenhaObjExtra() {
 	SetaEscalaTextura(1, 1);
 	desenhaGeralTextura(lousa, 90, 165, 397, 180, 1, 0, 0, 2.5, 1.30, 0.5, telalousa);
 	desenhaGeral(molduralousa, 90, 165, 397.5, -180, 0, 1, 0, 0.5, 0.65, 0.5);
+
+	// retrato
+	SetaEscalaTextura(1.5, 1.5);
+	desenhaGeralTextura(quadro, 0, 185, -399.5, 180, 0, 0, 1, 90, 90, 90, foto);
 
 	glColor3f(0.15, 0.15, 0.15);
 	desenhaGeral(lixeira, -60, 0, 380, -180, 0, 1, 0, 120, 120, 120);
@@ -499,7 +509,7 @@ void EspecificaParametrosVisualizacao(void)
 
 	// Especifica a projecao perspectiva
 	// (angulo, aspecto, zMin, zMax)
-	gluPerspective(ang_cam, fAspect, 0.1, 1000);
+	gluPerspective(ang_cam, fAspect, 0.1, 3000);
 
 	// Especifica sistema de coordenadas do modelo
 	glMatrixMode(GL_MODELVIEW);
@@ -689,6 +699,8 @@ void Inicializa(void)
 	telalousa = CarregaTextura("texturas/calculo.jpg", true);
 	tecido = CarregaTextura("texturas/tecido.jpg", true);
 	metalico = CarregaTextura("texturas/metalico.jpg", true);
+	grama = CarregaTextura("texturas/grama.jpg", true);
+	foto = CarregaTextura("texturas/prof.jpg", true);
 
 	// Seleciona o modo de aplicacao da textura
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, modo);
@@ -761,6 +773,7 @@ void Inicializa(void)
 	lousa = CarregaObjeto("obj/parede.obj", false);
 	lixeira = CarregaObjeto("obj/lixeira.obj", false);
 	luminaria = CarregaObjeto("obj/lamp.obj", false);
+	quadro = CarregaObjeto("obj/quadro.obj", false);
 
 	SetaLuzes();
 }

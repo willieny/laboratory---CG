@@ -11,7 +11,7 @@ Para executar este projeto, certifique-se de que tem as bibliotecas OpenGL e GLU
 
 ```shell
 sudo apt-get update
-sudo apt-get install libglu1-mesa-dev freeglut3-dev mesa-common-dev libglew-dev
+sudo apt-get install libglu1-mesa-dev freeglut3-dev mesa-common-dev libglew-dev libjpeg-dev
 ```
 
 Feito isto, compile o projeto com o comando:
@@ -24,7 +24,7 @@ Em seguida, basta rodar o comando `./main` para executar o programa.
 
 # Requisitos da AB1
 
-- [x] Navegação usando o teclado/mouse  permitindo ao usuário visualizar a parte externa e interna do Laboratório;
+- [x] Navegação usando o teclado/mouse permitindo ao usuário visualizar a parte externa e interna do Laboratório;
 - [x] 5 objetos diferentes do laboratório;
 - [x] Janelas: a janela deverá ser aberta e fechada usando o teclado;
 - [x] 1 Porta: A porta deverá ser aberta ou fechada (baixa rotação) através da ação de um botão do teclado.

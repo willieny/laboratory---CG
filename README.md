@@ -17,7 +17,7 @@ sudo apt-get install libglu1-mesa-dev freeglut3-dev mesa-common-dev libglew-dev 
 Feito isto, compile o projeto com o comando:
 
 ```shell
-g++ main.cpp bibutil.cpp myutil.cpp bibutilNoTex.cpp -o main -lGL -lGLU -lglut
+g++ main.cpp bibutil.cpp myutil.cpp bibutilNoTex.cpp -o main -lGL -lGLU -lglut -ljpeg
 ```
 
 Em seguida, basta rodar o comando `./main` para executar o programa.
@@ -35,6 +35,6 @@ Em seguida, basta rodar o comando `./main` para executar o programa.
 - [x] Criar a iluminação do Laboratório;
 - [x] 3 Fontes de Luz simulando uma luminária com spot sob as Mesas do Laboratório;
 - [x] Utilizar Iluminação (especular e difusa);
-- [] Aplicar mapeamento de textura em 5 objetos;
+- [ ] Aplicar mapeamento de textura em 5 objetos;
 - [x] Criar um modelo de iluminação para simular o efeito noite e dia na modelagem.
 - [x] Refinar a modelagem realizada no primeiro Bimestre;

@@ -9,11 +9,55 @@ using namespace std;
 
 vector<OBJ*> _objetos(0);
 vector<MAT*> _materiais(0);
+vector<TEX*> _texturas(0);
 
-char _modo = 's'; // desenha sólidos sem textura
+char _modo = 't'; // desenha sólidos com textura
 
 int _numquadro =0, _tempo, _tempoAnterior = 0;
 float _ultqps = 0;
+
+#ifndef __FREEGLUT_EXT_H__
+void glutBitmapString(void *fonte,char *texto)
+{
+	while (*texto)
+    	glutBitmapCharacter(fonte, *texto++);
+}
+#endif
+
+float CalculaQPS(void)
+{
+	_numquadro++;
+
+	_tempo = glutGet(GLUT_ELAPSED_TIME);
+	if (_tempo - _tempoAnterior > 1000)
+	{
+		_ultqps = _numquadro*1000.0/(_tempo - _tempoAnterior);
+	 	_tempoAnterior = _tempo;
+		_numquadro = 0;
+	}
+	return _ultqps;
+}
+
+void Escreve2D(float x, float y, char *str)
+{
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	glLoadIdentity();
+	gluOrtho2D(0,1,0,1);
+	
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	glLoadIdentity();
+
+	glRasterPos2f(x,y);
+	glColor3f(0,0,0);
+	glutBitmapString(GLUT_BITMAP_9_BY_15,str);
+	
+	glMatrixMode(GL_PROJECTION);
+	glPopMatrix();
+	glMatrixMode(GL_MODELVIEW);
+	glPopMatrix();
+}
 
 void Normaliza(VERT &norm)
 {
@@ -125,6 +169,15 @@ MAT *ProcuraMaterial(char *nome)
 	else return _materiais[pos];
 }
 
+int _procuraTextura(char *nome)
+{
+	unsigned int i;
+	for(i=0;i<_texturas.size();++i)
+		if(!strcmp(nome,_texturas[i]->nome))
+			return i;
+	return -1;
+}
+
 void _leMateriais(char *nomeArquivo)
 {
 	char aux[256];
@@ -193,8 +246,9 @@ OBJ *CarregaObjeto(char *nomeArquivo, bool mipmap)
 {
 	int i;
 	int vcont,ncont,fcont,tcont;
-	int material;
+	int material, texid;
 	char aux[256];
+	TEX *ptr;
 	FILE *fp;
 	OBJ *obj;
 	
@@ -215,11 +269,13 @@ OBJ *CarregaObjeto(char *nomeArquivo, bool mipmap)
 	obj->numTexcoords = 0;
 	obj->normais_por_vertice = false;
 	obj->tem_materiais = false;
+	obj->textura = -1;	
 	obj->dlist = -1;	
 
 	obj->vertices = NULL;
 	obj->faces = NULL;
 	obj->normais = NULL;
+	obj->texcoords = NULL;
 
 	while(!feof(fp))
 	{
@@ -248,15 +304,20 @@ OBJ *CarregaObjeto(char *nomeArquivo, bool mipmap)
 		if ( ( obj->normais = (VERT *) malloc((sizeof(VERT)) * obj->numNormais) ) == NULL )
 			return NULL;
 
+	if(obj->numTexcoords)
+		if ( ( obj->texcoords = (TEXCOORD *) malloc((sizeof(TEXCOORD)) * obj->numTexcoords) ) == NULL )
+			return NULL;
+	
 	vcont = 0;
 	ncont = 0;
 	tcont = 0;
 	fcont = 0;
 	material = -1;
+	texid = -1;
 
 	float minx,miny,minz;
 	float maxx,maxy,maxz;
-
+	
 	while(!feof(fp))
 	{
 		fgets(aux,255,fp);
@@ -272,6 +333,17 @@ OBJ *CarregaObjeto(char *nomeArquivo, bool mipmap)
 		if(!strncmp(aux,"usemtl",6))
 		{
 			material = _procuraMaterial(&aux[7]);
+			texid = -1;
+		}
+		if(!strncmp(aux,"usemat",6))
+		{
+			if(!strcmp(&aux[7],"(null)"))
+			{
+				texid = -1;
+				continue;
+			}
+			ptr = CarregaTextura(&aux[7],mipmap);
+			texid = ptr->texid;
 		}
 		if(!strncmp(aux,"v ",2))
 		{
@@ -303,10 +375,18 @@ OBJ *CarregaObjeto(char *nomeArquivo, bool mipmap)
 			ncont++;
 			obj->normais_por_vertice = true;
 		}
+		if(!strncmp(aux,"vt ",3))
+		{
+			sscanf(aux,"vt %f %f %f",&obj->texcoords[tcont].s,
+					&obj->texcoords[tcont].t,
+					&obj->texcoords[tcont].r);
+			tcont++;
+		}
 		if(!strncmp(aux,"f ",2))
 		{
 			char *ptr = aux+2;
 			obj->faces[fcont].mat = material;
+			obj->faces[fcont].texid = texid;
 			int vi[10],ti[10],ni[10];
 			char sep;
 			obj->faces[fcont].nv = 0;
@@ -364,22 +444,13 @@ OBJ *CarregaObjeto(char *nomeArquivo, bool mipmap)
 	return obj;
 }
 
-// Seta o modo do desenho: w=wireframe, s=sólidos sem textura
-// t=sólidos com textura
-void SetaModoDesenho(char modo)
-{
-	if(modo!='w' && modo!='s' && modo!='t') return;
-	_modo = modo;
-}
-
-// Desenha um objeto 3D passado como parâmetro
 void DesenhaObjeto(OBJ *obj)
 {
 	int i;	
+	GLint ult_texid, texid;	
 	GLenum prim = GL_POLYGON;	
 	GLfloat branco[4] = { 1.0, 1.0, 1.0, 1.0 };	
 
-	// gera uma nova display ou chama a já associada
 	if(obj->dlist >= 1000)
 		glNewList(obj->dlist-1000,GL_COMPILE_AND_EXECUTE);
 	else if(obj->dlist > -1)
@@ -388,54 +459,72 @@ void DesenhaObjeto(OBJ *obj)
 		return;
 	}
 
-	// se objeto for desenhado em wireframe
 	if(_modo=='w') prim = GL_LINE_LOOP;
 
 	glPushAttrib(GL_LIGHTING_BIT);
 	glDisable(GL_TEXTURE_2D);
 
-	// se objeto tiver material, desabilita COLOR_MATERIAL
 	if(obj->tem_materiais)
 		glDisable(GL_COLOR_MATERIAL);
 
-	// Varre todas as faces do objeto
+
+	ult_texid = -1;
 	for(i=0; i<obj->numFaces; i++)
 	{
+
 		if(!obj->normais_por_vertice)
 			glNormal3f(obj->normais[i].x,obj->normais[i].y,obj->normais[i].z);
 
-		// verifica se existe material associado a face
 		if(obj->faces[i].mat != -1)
 		{
 			int mat = obj->faces[i].mat;
 			glMaterialfv(GL_FRONT,GL_AMBIENT,_materiais[mat]->ka);
-			glMaterialfv(GL_FRONT,GL_DIFFUSE,_materiais[mat]->kd);
+
+			if(obj->faces[i].texid != -1 && _modo=='t')
+				glMaterialfv(GL_FRONT,GL_DIFFUSE,branco);
+			else
+				glMaterialfv(GL_FRONT,GL_DIFFUSE,_materiais[mat]->kd);
 			glMaterialfv(GL_FRONT,GL_SPECULAR,_materiais[mat]->ks);
 			glMaterialfv(GL_FRONT,GL_EMISSION,_materiais[mat]->ke);
 			glMaterialf(GL_FRONT,GL_SHININESS,_materiais[mat]->spec);
 		}
 
-		// Inicia a face - percorre todos os vertices da face
+		if(obj->textura != -1)
+			texid = obj->textura;
+		else
+			texid = obj->faces[i].texid;
+
+		if(texid == -1 && ult_texid != -1)
+			glDisable(GL_TEXTURE_2D);
+
+		if (texid != -1 && texid != ult_texid && _modo=='t')
+		{
+		       glEnable(GL_TEXTURE_2D);
+		       glBindTexture(GL_TEXTURE_2D,texid);
+		}
+
 		glBegin(prim);
 		for(int vf=0; vf<obj->faces[i].nv;++vf)
 		{
-			// envia a normal, se houver normais definidas para cada face
 			if(obj->normais_por_vertice)
 				glNormal3f(obj->normais[obj->faces[i].norm[vf]].x,
 				obj->normais[obj->faces[i].norm[vf]].y,
 				obj->normais[obj->faces[i].norm[vf]].z);
 
+			if(texid!=-1)
+				glTexCoord2f(obj->texcoords[obj->faces[i].tex[vf]].s,
+				obj->texcoords[obj->faces[i].tex[vf]].t);
 			glVertex3f(obj->vertices[obj->faces[i].vert[vf]].x,
 		    	obj->vertices[obj->faces[i].vert[vf]].y,
 			obj->vertices[obj->faces[i].vert[vf]].z);
 		}
 		glEnd();
+
+		ult_texid = texid;
 	} 
 	
 	glDisable(GL_TEXTURE_2D);
 	glPopAttrib();
-	
-	// se for uma nova display list
 	if(obj->dlist >= 1000)
 	{
 		glEndList();
@@ -447,10 +536,12 @@ void _liberaObjeto(OBJ *obj)
 {
 	if (obj->vertices != NULL)  free(obj->vertices);
 	if (obj->normais != NULL)   free(obj->normais);
+	if (obj->texcoords != NULL) free(obj->texcoords);
 	for(int i=0; i<obj->numFaces;++i)
 	{
 		if (obj->faces[i].vert != NULL) free(obj->faces[i].vert);
 		if (obj->faces[i].norm != NULL) free(obj->faces[i].norm);
+		if (obj->faces[i].tex  != NULL) free(obj->faces[i].tex);
 	}
 	if (obj->faces != NULL) free(obj->faces);
 	free(obj);
@@ -491,5 +582,243 @@ void LiberaMateriais()
 		free(_materiais[i]);
 	}
 	_materiais.clear();
+#ifdef DEBUG
+#endif
+	for(i=0;i<_texturas.size();++i)
+	{
+#ifdef DEBUG
+
+#endif
+		free(_texturas[i]);
+	}
+	_texturas.clear();
 }
 
+TEX *CarregaTextura(char *arquivo, bool mipmap)
+{
+	GLenum formato;
+
+	if(!arquivo)		
+		return NULL;
+
+	int indice = _procuraTextura(arquivo);
+
+	if(indice!=-1)
+		return _texturas[indice];
+
+	TEX *pImage = CarregaJPG(arquivo, false);	
+
+	if(pImage == NULL)	
+		exit(0);
+
+	strcpy(pImage->nome,arquivo);
+	glGenTextures(1, &pImage->texid);
+
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	glBindTexture(GL_TEXTURE_2D, pImage->texid);
+
+	if(pImage->ncomp==1) formato = GL_LUMINANCE;
+	else formato = GL_RGB;
+
+	if(mipmap)
+	{
+		gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGB, pImage->dimx, pImage->dimy,
+			formato, GL_UNSIGNED_BYTE, pImage->data);
+		glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	}
+	else
+	{
+		glTexImage2D (GL_TEXTURE_2D, 0, GL_RGB, pImage->dimx, pImage->dimx,
+			0, formato, GL_UNSIGNED_BYTE, pImage->data);
+		glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	}
+
+	free(pImage->data); 	
+	_texturas.push_back(pImage);
+	return pImage;
+}
+
+
+GLenum faces[6] = {
+  GL_TEXTURE_CUBE_MAP_POSITIVE_X,
+  GL_TEXTURE_CUBE_MAP_NEGATIVE_X,
+  GL_TEXTURE_CUBE_MAP_POSITIVE_Y,
+  GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,
+  GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
+  GL_TEXTURE_CUBE_MAP_NEGATIVE_Z
+};
+
+char *nomes[] = {
+		"posx", "negx", "posy", "negy", "posz", "negz" };
+
+
+TEX *CarregaTexturasCubo(char *nomebase, bool mipmap)
+{
+	GLenum formato;
+	TEX *primeira;
+
+	if(!nomebase)		
+		return NULL;
+
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+	for(int i=0;i<6;++i)
+	{
+		char arquivo[100];
+
+		int indice = _procuraTextura(nomebase);
+		if(indice!=-1)
+			return _texturas[indice];
+
+		TEX *pImage = CarregaJPG(arquivo,false);
+
+		if(pImage == NULL)	
+			exit(0);
+
+		if(!i)
+		{
+			primeira = pImage;
+			glGenTextures(1, &pImage->texid);
+			glBindTexture(GL_TEXTURE_CUBE_MAP, pImage->texid);
+			strcpy(pImage->nome,arquivo);
+		}
+
+		if(pImage->ncomp==1) formato = GL_LUMINANCE;
+		else formato = GL_RGB;
+
+		if(mipmap)
+			gluBuild2DMipmaps(faces[i], GL_RGB, pImage->dimx, pImage->dimy,
+			formato, GL_UNSIGNED_BYTE, pImage->data);
+		else
+			glTexImage2D (faces[i], 0, GL_RGB, pImage->dimx, pImage->dimx,
+				0, formato, GL_UNSIGNED_BYTE, pImage->data);
+
+
+		free(pImage->data); 	
+
+		if(!i) _texturas.push_back(pImage);
+		else free(pImage);
+	}
+	if(mipmap)
+	{
+		glTexParameteri (GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glTexParameteri (GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	}
+	else
+	{
+		glTexParameteri (GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri (GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	}
+	return primeira;
+}
+
+void SetaFiltroTextura(GLint tex, GLint filtromin, GLint filtromag)
+{
+	glEnable(GL_TEXTURE_2D);
+	if(tex!=-1)
+	{
+		glBindTexture(GL_TEXTURE_2D,tex);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filtromin);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filtromag);
+	}
+	else
+	for(unsigned int i=0;i<_texturas.size();++i)
+	{
+		glBindTexture(GL_TEXTURE_2D,_texturas[i]->texid);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filtromin);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filtromag);
+	}
+	glDisable(GL_TEXTURE_2D);
+}
+
+void DesabilitaDisplayList(OBJ *ptr)
+{
+	if(ptr == NULL) return;
+	if(ptr->dlist > 0 && ptr->dlist < 1000) 
+	{
+			glDeleteLists(ptr->dlist,1);
+	}
+	ptr->dlist = -2;
+}
+
+void _criaDList(OBJ *ptr)
+{
+	if(ptr->dlist == -1) ptr->dlist = glGenLists(1);
+	ptr->dlist = ptr->dlist + 1000;
+}
+
+void CriaDisplayList(OBJ *ptr)
+{
+	if(ptr==NULL)
+	{
+		for(unsigned int i=0;i<_objetos.size();++i)
+		{
+			ptr = _objetos[i];
+			if(ptr->dlist == -2) continue;
+			_criaDList(ptr);
+		}
+	}
+	else if(ptr->dlist != -2)_criaDList(ptr);
+}
+
+void DecodificaJPG(jpeg_decompress_struct* cinfo, TEX *pImageData, bool inverte)
+{
+	jpeg_read_header(cinfo, TRUE);
+	jpeg_start_decompress(cinfo);
+
+	pImageData->ncomp = cinfo->num_components;
+	pImageData->dimx  = cinfo->image_width;
+	pImageData->dimy  = cinfo->image_height;
+
+	int rowSpan = pImageData->ncomp * pImageData->dimx;
+	pImageData->data = new unsigned char[rowSpan * pImageData->dimy];
+		
+	int height = pImageData->dimy - 1;
+	unsigned char** rowPtr = new unsigned char*[pImageData->dimy];
+	if(inverte)
+		for (int i = 0; i <= height; i++)
+			rowPtr[height - i] = &(pImageData->data[i*rowSpan]);
+	else
+		for (int i = 0; i <= height; i++)
+			rowPtr[i] = &(pImageData->data[i*rowSpan]);
+
+	int rowsRead = 0;
+	while (cinfo->output_scanline < cinfo->output_height) 
+	{
+		rowsRead += jpeg_read_scanlines(cinfo, &rowPtr[rowsRead], cinfo->output_height - rowsRead);
+	}
+	
+	delete [] rowPtr;
+	jpeg_finish_decompress(cinfo);
+}
+
+TEX *CarregaJPG(const char *filename, bool inverte)
+{
+	struct jpeg_decompress_struct cinfo;
+	TEX *pImageData = NULL;
+	FILE *pFile;
+	
+	if((pFile = fopen(filename, "rb")) == NULL) 
+	{
+
+		return NULL;
+	}
+	
+	jpeg_error_mgr jerr;
+
+	cinfo.err = jpeg_std_error(&jerr);
+	jpeg_create_decompress(&cinfo);
+	jpeg_stdio_src(&cinfo, pFile);
+	
+	pImageData = (TEX*)malloc(sizeof(TEX));
+
+	DecodificaJPG(&cinfo, pImageData, inverte);
+	
+	jpeg_destroy_decompress(&cinfo);
+	
+	fclose(pFile);
+
+	return pImageData;
+}

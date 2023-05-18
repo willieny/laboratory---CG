@@ -7,14 +7,9 @@
 
 using namespace std;
 
-
 vector<OBJnotex*> _objetosNoTex(0);
-
-
 vector<MATnotex*> _materiaisNoTex(0);
-
 vector<TEXnotex*> _texturasNoTex(0);
-
 
 char _modoNoTex = 't';
 
@@ -25,24 +20,19 @@ float _ultqpsNoTex = 0;
 
 void glutBitmapStringNoTex(void *fonte,char *texto)
 {
-	
 	while (*texto)
     	glutBitmapCharacter(fonte, *texto++);
 }
 #endif
 
-
 float CalculaQPSNoTex(void)
 {
-	
 	_numquadroNoTex++;
-
 	
 	_tempoNoTex = glutGet(GLUT_ELAPSED_TIME);
 	
 	if (_tempoNoTex - _tempoAnteriorNoTex > 1000)
 	{
-		
 		_ultqpsNoTex = _numquadroNoTex*1000.0/(_tempoNoTex - _tempoAnteriorNoTex);
 		
 	 	_tempoAnteriorNoTex = _tempoNoTex;
@@ -51,7 +41,6 @@ float CalculaQPSNoTex(void)
 	
 	return _ultqpsNoTex;
 }
-
 
 void Escreve2DNoTex(float x, float y, char *str)
 {
@@ -67,7 +56,6 @@ void Escreve2DNoTex(float x, float y, char *str)
 	glPushMatrix();
 	glLoadIdentity();
 
-	
 	glRasterPos2f(x,y);
 	glColor3f(0,0,0);
 	
@@ -158,7 +146,6 @@ int leNumNoTex(char **face, char *sep)
 	return atoi(temp);
 }
 
-
 int _procuraMaterialNoTex(char *nome)
 {
 	unsigned int i;
@@ -167,7 +154,6 @@ int _procuraMaterialNoTex(char *nome)
 			return i;
 	return -1;
 }
-
 
 MATnotex *ProcuraMaterialNoTex(char *nome)
 {
@@ -255,7 +241,6 @@ void _leMateriaisNoTex(char *nomeArquivo)
 
 OBJnotex *CarregaObjetoNoTex(char *nomeArquivo, bool mipmap)
 {	
-	
 	int i;
 	int vcont,ncont,fcont,tcont;
 	int material, texid;
@@ -309,16 +294,13 @@ OBJnotex *CarregaObjetoNoTex(char *nomeArquivo, bool mipmap)
 #ifdef DEBUG
 #endif
 
-	
 	if ( ( obj->vertices = (VERTnotex *) malloc((sizeof(VERTnotex)) * obj->numVertices) ) == NULL ){
 		return NULL;
 	}
 
-
 	if ( ( obj->faces = (FACEnotex *) malloc((sizeof(FACEnotex)) * obj->numFaces) ) == NULL ){
 		return NULL;
 	}
-
 
 	if(obj->numNormais){
 		if ( ( obj->normais = (VERTnotex *) malloc((sizeof(VERTnotex)) * obj->numNormais) ) == NULL )
@@ -330,7 +312,6 @@ OBJnotex *CarregaObjetoNoTex(char *nomeArquivo, bool mipmap)
 			return NULL;
 	}
 
-
 	vcont = 0;
 	ncont = 0;
 	tcont = 0;
@@ -338,10 +319,8 @@ OBJnotex *CarregaObjetoNoTex(char *nomeArquivo, bool mipmap)
 	material = -1;
 	texid = -1;
 
-	
 	float minx,miny,minz;
 	float maxx,maxy,maxz;
-
 
 	while(!feof(fp))
 	{
@@ -461,13 +440,11 @@ void SetaModoDesenhoNoTex(char modo)
 
 void DesenhaObjetoNoTex(OBJnotex *obj)
 {	
-	
 	int i;	
 	GLint ult_texid, texid;	
 	GLenum prim = GL_POLYGON;	
 
 	GLfloat branco[4] = { 1.0, 1.0, 1.0, 1.0 };	
-	
 	
 	if(obj->dlist >= 1000){
 		
@@ -478,8 +455,6 @@ void DesenhaObjetoNoTex(OBJnotex *obj)
 		glCallList(obj->dlist);
 		return;
 	}
-
-	
 	
 	if(_modoNoTex=='w') prim = GL_LINE_LOOP;
 
@@ -489,22 +464,17 @@ void DesenhaObjetoNoTex(OBJnotex *obj)
 	if(obj->tem_materiais)
 		glDisable(GL_COLOR_MATERIAL);
 
-	
 	ult_texid = -1;
 	
 	for(i=0; i<obj->numFaces; i++)
 	{
-		
 		if(!obj->normais_por_vertice)
 			glNormal3f(obj->normais[i].x,obj->normais[i].y,obj->normais[i].z);
-
 		
 		if(obj->faces[i].mat != -1)
 		{
-			
 			int mat = obj->faces[i].mat;
 			glMaterialfv(GL_FRONT,GL_AMBIENT,_materiaisNoTex[mat]->ka);
-			
 			
 			if(obj->faces[i].texid != -1 && _modoNoTex=='t')
 				glMaterialfv(GL_FRONT,GL_DIFFUSE,branco);
@@ -515,14 +485,12 @@ void DesenhaObjetoNoTex(OBJnotex *obj)
 			glMaterialf(GL_FRONT,GL_SHININESS,_materiaisNoTex[mat]->spec);
 		}
 
-		
 		if(obj->textura != -1)
 			texid = obj->textura;
 		else
 			
 			texid = obj->faces[i].texid;
 
-		
 		if(texid == -1 && ult_texid != -1)
 			glDisable(GL_TEXTURE_2D);
 
@@ -552,7 +520,6 @@ void DesenhaObjetoNoTex(OBJnotex *obj)
 		}
 
 		glEnd();
-
 
 		ult_texid = texid;
 	} 
@@ -588,7 +555,6 @@ void _liberaObjetoNoTex(OBJnotex *obj)
 	free(obj);
 }
 
-
 void LiberaObjetoNoTex(OBJnotex *obj)
 {
 	unsigned int o;
@@ -600,7 +566,6 @@ void LiberaObjetoNoTex(OBJnotex *obj)
 	}
 	else
 	{
-
 		vector<OBJnotex*>::iterator it = _objetosNoTex.begin();
 		for(it = _objetosNoTex.begin(); it<_objetosNoTex.end(); ++it)
 
@@ -646,7 +611,6 @@ void LiberaMateriaisNoTex()
 
 	_texturasNoTex.clear();
 }
-
 
 void CalculaNormaisPorFaceNoTex(OBJnotex *obj)
 {
@@ -694,7 +658,6 @@ void SetaFiltroTexturaNoTex(GLint tex, GLint filtromin, GLint filtromag)
 	glDisable(GL_TEXTURE_2D);
 }
 
-
 void DesabilitaDisplayListNoTex(OBJnotex *ptr)
 {
 	if(ptr == NULL) return;
@@ -706,7 +669,6 @@ void DesabilitaDisplayListNoTex(OBJnotex *ptr)
 	ptr->dlist = -2;
 }
 
-
 void _criaDListNoTex(OBJnotex *ptr)
 {
 
@@ -714,7 +676,6 @@ void _criaDListNoTex(OBJnotex *ptr)
 
 	ptr->dlist = ptr->dlist + 1000;
 }
-
 
 void CriaDisplayListNoTex(OBJnotex *ptr)
 {

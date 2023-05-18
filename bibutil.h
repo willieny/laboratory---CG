@@ -5,9 +5,25 @@
 #include <stdlib.h>
 #include <GL/glut.h>
 
+extern "C" {
+	#include <jpeglib.h>
+}
+
 #ifndef M_PI
 #define M_PI 3.1415926
 #endif
+
+// Define a estrutura de uma textura
+typedef struct
+{
+	char nome[50];			
+	int ncomp;				
+	GLint dimx;				
+	GLint dimy;				
+	GLuint texid;			
+	unsigned char *data;	
+} TEX;
+
 
 // Define a estrutura de um vértice
 typedef struct {
@@ -24,6 +40,11 @@ typedef struct {
 	GLint texid;	
 } FACE;
 
+// Define a estrutura de textcoord (textura de coordenada)
+typedef struct {
+	GLfloat s,t,r;
+} TEXCOORD;
+
 // Define a estrutura de um objeto 3D
 typedef struct {
 	GLint numVertices;
@@ -31,11 +52,13 @@ typedef struct {
 	GLint numNormais;
 	GLint numTexcoords;
 	bool normais_por_vertice;	
-	bool tem_materiais;						
-	GLint dlist;	// display list, se houver				
+	bool tem_materiais;			
+	GLint textura;				
+	GLint dlist;				
 	VERT *vertices;
 	VERT *normais;
 	FACE *faces;
+	TEXCOORD *texcoords;
 } OBJ;
 
 // Define um material
@@ -55,16 +78,39 @@ void RotaZ(VERT &in, VERT &out, float ang);
 void RotaY(VERT &in, VERT &out, float ang);
 void RotaX(VERT &in, VERT &out, float ang);
 
-
 OBJ *CarregaObjeto(char *nomeArquivo, bool mipmap);
+void CriaDisplayList(OBJ *obj);
+void DesabilitaDisplayList(OBJ *ptr);
 void DesenhaObjeto(OBJ *obj);
 void SetaModoDesenho(char modo);
 
 void LiberaObjeto(OBJ *obj);
 void LiberaMateriais();
 
+float CalculaQPS(void);
+void Escreve2D(float x, float y, char *str);
+
 void CalculaNormaisPorFace(OBJ *obj);
 
+TEX *CarregaTextura(char *arquivo, bool mipmap);
+TEX *CarregaTexturasCubo(char *arquivo, bool mipmap);
+void SetaFiltroTextura(GLint tex, GLint filtromin, GLint filtromag);
 MAT *ProcuraMaterial(char *nome);
+TEX *CarregaJPG(const char *filename, bool inverte=true);
+
+#ifndef GL_ARB_texture_cube_map
+# define GL_NORMAL_MAP					0x8511
+# define GL_REFLECTION_MAP				0x8512
+# define GL_TEXTURE_CUBE_MAP			0x8513
+# define GL_TEXTURE_BINDING_CUBE_MAP	0x8514
+# define GL_TEXTURE_CUBE_MAP_POSITIVE_X	0x8515
+# define GL_TEXTURE_CUBE_MAP_NEGATIVE_X	0x8516
+# define GL_TEXTURE_CUBE_MAP_POSITIVE_Y	0x8517
+# define GL_TEXTURE_CUBE_MAP_NEGATIVE_Y	0x8518
+# define GL_TEXTURE_CUBE_MAP_POSITIVE_Z	0x8519
+# define GL_TEXTURE_CUBE_MAP_NEGATIVE_Z	0x851A
+# define GL_PROXY_TEXTURE_CUBE_MAP		0x851B
+# define GL_MAX_CUBE_MAP_TEXTURE_SIZE	0x851C
+#endif
 
 #endif

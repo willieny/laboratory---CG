@@ -4,19 +4,13 @@
 #include "bibutil.h"
 #include "bibutilNoTex.h"
 #include "myutil.h"
+#include <vector>
+#include <stdio.h>
+#include <string.h>
 
 using namespace std;
 
-typedef struct {
-	char nome[50];			
-	int ncomp;				
-	GLint dimx;				
-	GLint dimy;				
-	GLuint texid;			
-	unsigned char *data;
-} TEX;
-
-TEX *chao;
+TEX *parede, *chao, *teto, *tabua, *telalousa, *tecido, *metalico;
 
 // Filtros de textura
 GLint filtros[] = {
@@ -61,7 +55,7 @@ GLfloat xE_trans_angle = 0.430,
 
 // Variaveis para controle da hélice
 GLfloat angulo;
-GLfloat sentido = 1;
+GLfloat sentido = true;
 
 // Variaveis para controle do mouse
 #define SENS_ROT 5.0
@@ -70,9 +64,10 @@ GLfloat sentido = 1;
 // Luminosidade base de uma lampada
 #define LOW 0.3
 
-// Apontador para material da fonte de luz
+// Define parametros de iluminacao
 
 // Luz 1: pontual no teto, frente
+GLfloat luzAmb1[4] = {0.1, 0.1, 0.1, 1};   // luz ambiente
 GLfloat luzDif1[4] = {LOW, LOW, LOW, 1.0}; // luz difusa
 GLfloat luzEsp1[4] = {0.0, 0.0, 0.0, 1.0}; // luz especular
 GLfloat posLuz1[4] = {0, 200, 250, 1};	   // posicao da fonte de luz
@@ -85,34 +80,7 @@ GLfloat posLuz2[4] = {0, 200, 0, 1};	   // posicao da fonte de luz
 GLfloat luzDif3[4] = {LOW, LOW, LOW, 1.0}; // luz difusa
 GLfloat posLuz3[4] = {0, 200, -250, 1};	   // posicao da fonte de luz
 
-// // Luz 4: Sol
-GLfloat luzAmb4[4] = {0.3, 0.3, 0.3, 1.0}; // luz difusa
-GLfloat luzDif4[4] = {0.4, 0.2, 0.0, 1.0}; // luz difusa
-GLfloat posLuz4[4] = {0.4, 0.4, 1, 0};	   // posicao da fonte de luz
-
-GLfloat luzAmb5[4] = {0.2, 0.2, 0.2, 1.0}; // luz ambiente
-GLfloat luzDif5[4] = {1, 1, 1, 1}; // luz difusa
-GLfloat luzEsp5[4] = {0, 0, 0, 1.0}; // luz especular
-GLfloat posLuz5[4] = {250, 150, 33, 1.0};	   // posicao da fonte de luz
-GLfloat dirLuz5[3] = {0, -1, 0};	   // posicao da fonte de luz
-
-GLfloat luzAmb6[4] = {0.2, 0.2, 0.2, 1.0}; // luz ambiente
-GLfloat luzDif6[4] = {1, 1, 1, 1}; // luz difusa
-GLfloat luzEsp6[4] = {0, 0, 0, 1.0}; // luz especular
-GLfloat posLuz6[4] = {-250, 150, 33, 1.0};	   // posicao da fonte de luz
-GLfloat dirLuz6[3] = {0, -1, 0};	   // posicao da fonte de luz
-
-GLfloat luzAmb7[4] = {0.2, 0.2, 0.2, 1.0}; // luz ambiente
-GLfloat luzDif7[4] = {1, 1, 1, 1}; // luz difusa
-GLfloat luzEsp7[4] = {0, 0, 0, 1.0}; // luz especular
-GLfloat posLuz7[4] = {0, 150, 33, 1.0};	   // posicao da fonte de luz
-GLfloat dirLuz7[3] = {0, -1, 0};	   // posicao da fonte de luz
-
-int luz = 0;
-
-GLfloat luzAmbiente[4] = {0.1, 0.1, 0.1, 1};
-
-bool luzes[7] = {true, true, true, false, true, true, true};
+bool luzes[6] = {true, true, true, false, false};
 
 // Objetos
 OBJ *plano,
@@ -126,6 +94,7 @@ OBJ *plano,
 	*cadeira,
 	*interruptor,
 	*lousa,
+	*molduralousa,
 	*lixeira,
 	*base,
 	*helice;
@@ -147,45 +116,60 @@ int x_ini,
 
 void DesenhaSala() {
 
+	SetaEscalaTextura(8, 3);
+
+	if (modo_des == 't')
+		glColor3f(1, 1, 1);
+	else
+		glColor3ub(196, 210, 184);
+
 	// paredes
 	glColor3f(0.92, 0.92, 0.92);
 
-	desenhaGeral(plano, 300, 150, 0, -90, 0, 1, 0, 8, 3, 1);        // esquerda
-	desenhaGeral(plano, -300, 150, 0, 90, 0, 1, 0, 8, 3, 1);        // direita
+	desenhaGeralTextura(plano, 300, 150, 0, -90, 0, 1, 0, 8, 3, 1, parede);        // esquerda
+	SetaEscalaTextura(8, 3);
+	desenhaGeralTextura(plano, -300, 150, 0, 90, 0, 1, 0, 8, 3, 1, parede);        // direita
 
 	// fundos
-	desenhaGeral(plano, 0, 274.5, -400, 0, 0, 1, 0, 6, 0.52, 1);    // superior
-	desenhaGeral(plano, 0, 65.5, -400, 0, 0, 0, 0, 6, 1.315, 1);    // inferior
-	desenhaGeral(plano, 0, 190, -400, 0, 0, 0, 0, 1.69, 1.2, 1);    // meio
-	desenhaGeral(plano, 243, 190, -400, 0, 0, 0, 0, 1.14, 1.2, 1);  // direita
-	desenhaGeral(plano, -243, 190, -400, 0, 0, 0, 0, 1.14, 1.2, 1); // esquerda
+	SetaEscalaTextura(6, 0.52);
+	desenhaGeralTextura(plano, 0, 274.5, -400, 0, 0, 1, 0, 6, 0.52, 1, parede);    // superior
+	SetaEscalaTextura(6, 1.315);
+	desenhaGeralTextura(plano, 0, 65.5, -400, 0, 0, 0, 0, 6, 1.315, 1, parede);    // inferior
+	SetaEscalaTextura(1.69, 1.2);
+	desenhaGeralTextura(plano, 0, 190, -400, 0, 0, 0, 0, 1.69, 1.2, 1, parede);    // meio
+	SetaEscalaTextura(1.14, 1.2);
+	desenhaGeralTextura(plano, 243, 190, -400, 0, 0, 0, 0, 1.14, 1.2, 1, parede);  // direita
+	SetaEscalaTextura(1.14, 1.2);
+	desenhaGeralTextura(plano, -243, 190, -400, 0, 0, 0, 0, 1.14, 1.2, 1, parede); // esquerda
 
 	// frente
-	desenhaGeral(plano, 0, 250, 400, 180, 0, 1, 0, 6, 1, 1);        // superior
-	desenhaGeral(plano, 87.5, 100, 400, 180, 0, 1, 0, 4.25, 2, 1);  // esquerda
-	desenhaGeral(plano, -257, 100, 400, 180, 0, 1, 0, 0.86, 2, 1);  // direita
+	SetaEscalaTextura(6, 1);
+	desenhaGeralTextura(plano, 0, 250, 400, 180, 0, 1, 0, 6, 1, 1, parede);        // superior
+	SetaEscalaTextura(4.25, 2);
+	desenhaGeralTextura(plano, 87.5, 100, 400, 180, 0, 1, 0, 4.25, 2, 1, parede);  // esquerda
+	SetaEscalaTextura(0.86, 2);
+	desenhaGeralTextura(plano, -257, 100, 400, 180, 0, 1, 0, 0.86, 2, 1, parede);  // direita
 
 	// chão
+	SetaEscalaTextura(6,8);
 	glColor3f(0.80, 0.80, 0.80);
-	desenhaGeral(plano, 0, 0, 0, -90, 1, 0, 0, 6, 8, 1);
-
-	// Grama
-	glColor3f(0.2, 1.0, 0.2);
-	desenhaGeral(plano, 0, -0.1, 0, -90, 1, 0, 0, 20, 20, 1);
+	desenhaGeralTextura(plano, 0, 0, 0, -90, 1, 0, 0, 6, 8, 1, chao);
 
 	// teto
+	SetaEscalaTextura(6, 8);
 	glColor3f(0.90, 0.90, 0.90);
-	desenhaGeral(plano, 0, 300, 0, 90, 1, 0, 0, 6, 8, 1);
+	desenhaGeralTextura(plano, 0, 300, 0, 90, 1, 0, 0, 6, 8, 1, teto);
 }
 
-void DesenhaPorta() {
+void DesenhaPorta()
+{
 	// Desenha a porta
 	glPushMatrix();
 
 	glTranslatef(-170, 0, 397.5);
 	glScalef(100, 100, 100);
 	glRotatef(-180, 0, 1, 0);
-	glColor3f(0.65, 0.35, 0);
+	glColor3f(0.75, 0.75, 0.75);
 	glTranslatef(x_trans_angle, 0, 0);
 	glRotated(angle_door, 0, 1, 0);
 	glTranslatef(-x_trans_angle, 0, 0);
@@ -194,16 +178,18 @@ void DesenhaPorta() {
 }
 
 void DesenhaJanela() {
+	glColor3f(0.65, 0.5, 0.35);
+	SetaEscalaTextura(1, 1);
 	// Janela Direita
 	// JanelaE
 	glPushMatrix();
 	glTranslatef(109.5, 130, -399);
 	glScalef(60, 60, 60);
 	glRotatef(-180, 0, 1, 0);
-	glColor3f(0.75, 0.75, 0.75);
 	glTranslatef(xE_trans_angle, 0, 0);
 	glRotated(angleE_window, 0, 1, 0);
 	glTranslatef(-xE_trans_angle, 0, 0);
+	janela->textura = tabua->texid;
 	DesenhaObjeto(janela);
 	glPopMatrix();
 
@@ -212,10 +198,10 @@ void DesenhaJanela() {
 	glTranslatef(160, 130, -399);
 	glScalef(60, 60, 60);
 	glRotatef(-180, 0, 1, 0);
-	glColor3f(0.75, 0.75, 0.75);
 	glTranslatef(xD_trans_angle, 0, 0);
 	glRotated(angleD_window, 0, 1, 0);
 	glTranslatef(-xD_trans_angle, 0, 0);
+	janela->textura = tabua->texid;
 	DesenhaObjeto(janela);
 	glPopMatrix();
 
@@ -225,10 +211,10 @@ void DesenhaJanela() {
 	glTranslatef(-160.5, 130, -399);
 	glScalef(60, 60, 60);
 	glRotatef(-180, 0, 1, 0);
-	glColor3f(0.75, 0.75, 0.75);
 	glTranslatef(xE_trans_angle, 0, 0);
 	glRotated(angleE_window, 0, 1, 0);
 	glTranslatef(-xE_trans_angle, 0, 0);
+	janela->textura = tabua->texid;
 	DesenhaObjeto(janela);
 	glPopMatrix();
 
@@ -237,27 +223,29 @@ void DesenhaJanela() {
 	glTranslatef(-110, 130, -399);
 	glScalef(60, 60, 60);
 	glRotatef(-180, 0, 1, 0);
-	glColor3f(0.75, 0.75, 0.75);
 	glTranslatef(xD_trans_angle, 0, 0);
 	glRotated(angleD_window, 0, 1, 0);
 	glTranslatef(-xD_trans_angle, 0, 0);
+	janela->textura = tabua->texid;
 	DesenhaObjeto(janela);
 	glPopMatrix();
 }
 
 void DesenhaVentiladores() {
-
+	// Base
 	glColor3f(0.75, 0.75, 0.75);
 	desenhaGeral(base, 0, 252, 180, -180, 0, 1, 0, 40, 40, 40);
 
 	// Hélice
-	glColor3f(0.85, 0.85, 0.85);
+	SetaEscalaTextura(1, 1);
 	glPushMatrix();
 	glTranslatef(0, 255, 180);
 	glScalef(370, 100, 370);
 	glRotatef(90, 1, 0, 0);
 	glRotatef(90, 0, 0, 1);
+	glColor3f(1, 1, 1);
 	glRotatef(angulo, 0, 0, 1);
+	helice->textura = metalico->texid;
 	DesenhaObjeto(helice);
 	glPopMatrix();
 
@@ -266,13 +254,15 @@ void DesenhaVentiladores() {
 	desenhaGeral(base, 0, 252, -180, -180, 0, 1, 0, 40, 40, 40);
 
 	// Hélice
+	SetaEscalaTextura(1, 1);
 	glPushMatrix();
 	glTranslatef(0, 255, -180);
 	glScalef(370, 100, 370);
 	glRotatef(90, 1, 0, 0);
 	glRotatef(90, 0, 0, 1);
-	glColor3f(0.85, 0.85, 0.85);
+	glColor3f(1, 1, 1);
 	glRotatef(angulo, 0, 0, 1);
+	helice->textura = metalico->texid;
 	DesenhaObjeto(helice);
 	glPopMatrix();
 }
@@ -280,19 +270,19 @@ void DesenhaVentiladores() {
 void DesenhaMesas() {
 
 	glColor3f(1, 1, 1);
-
-	desenhaGeral(mesa, 263, 0, 33, 90, 0, 1, 0, 90, 90, 90);
-	desenhaGeral(mesa, 263, 0, -90, 90, 0, 1, 0, 90, 90, 90);
-	desenhaGeral(mesa, 263, 0, -213, 90, 0, 1, 0, 90, 90, 90);
-	desenhaGeral(mesa, 263, 0, -336, 90, 0, 1, 0, 90, 90, 90);
-	desenhaGeral(mesa, 165, 0, -363, -180, 0, 1, 0, 90, 90, 90);
-	desenhaGeral(mesa, 42, 0, -363, -180, 0, 1, 0, 90, 90, 90);
-	desenhaGeral(mesa, -81, 0, -363, -180, 0, 1, 0, 90, 90, 90);
-	desenhaGeral(mesa, -204, 0, -363, -180, 0, 1, 0, 90, 90, 90);
-	desenhaGeral(mesa, -263, 0, 33, -90, 0, 1, 0, 90, 90, 90);
-	desenhaGeral(mesa, -263, 0, -90, -90, 0, 1, 0, 90, 90, 90);
-	desenhaGeral(mesa, -263, 0, -213, -90, 0, 1, 0, 90, 90, 90);
-	desenhaGeral(mesa, -263, 0, -336, -90, 0, 1, 0, 90, 90, 90);
+	SetaEscalaTextura(1, 1);
+	desenhaGeralTextura(mesa, 263, 0, 33, 90, 0, 1, 0, 90, 90, 90, tabua);
+	desenhaGeralTextura(mesa, 263, 0, -90, 90, 0, 1, 0, 90, 90, 90, tabua);
+	desenhaGeralTextura(mesa, 263, 0, -213, 90, 0, 1, 0, 90, 90, 90, tabua);
+	desenhaGeralTextura(mesa, 263, 0, -336, 90, 0, 1, 0, 90, 90, 90, tabua);
+	desenhaGeralTextura(mesa, 165, 0, -363, -180, 0, 1, 0, 90, 90, 90, tabua);
+	desenhaGeralTextura(mesa, 42, 0, -363, -180, 0, 1, 0, 90, 90, 90, tabua);
+	desenhaGeralTextura(mesa, -81, 0, -363, -180, 0, 1, 0, 90, 90, 90, tabua);
+	desenhaGeralTextura(mesa, -204, 0, -363, -180, 0, 1, 0, 90, 90, 90, tabua);
+	desenhaGeralTextura(mesa, -263, 0, 33, -90, 0, 1, 0, 90, 90, 90, tabua);
+	desenhaGeralTextura(mesa, -263, 0, -90, -90, 0, 1, 0, 90, 90, 90, tabua);
+	desenhaGeralTextura(mesa, -263, 0, -213, -90, 0, 1, 0, 90, 90, 90, tabua);
+	desenhaGeralTextura(mesa, -263, 0, -336, -90, 0, 1, 0, 90, 90, 90, tabua);
 }
 
 void DesenhaMonitores() {
@@ -345,24 +335,22 @@ void DesenhaMouses() {
 
 void DesenhaCadeiras() {
 
-	glColor3f(0, 0, 0.35);
-
-	desenhaGeral(cadeira, 221, 0, 33, 90, 0, 1, 0, 90, 90, 90);
-	desenhaGeral(cadeira, 221, 0, -90, 90, 0, 1, 0, 90, 90, 90);
-	desenhaGeral(cadeira, 221, 0, -213, 90, 0, 1, 0, 90, 90, 90);
-	desenhaGeral(cadeira, 165, 0, -321, 180, 0, 1, 0, 90, 90, 90);
-	desenhaGeral(cadeira, 42, 0, -321, 180, 0, 1, 0, 90, 90, 90);
-	desenhaGeral(cadeira, -81, 0, -321, 180, 0, 1, 0, 90, 90, 90);
-	desenhaGeral(cadeira, -204, 0, -321, 180, 0, 1, 0, 90, 90, 90);
-	desenhaGeral(cadeira, -221, 0, 33, -90, 0, 1, 0, 90, 90, 90);
-	desenhaGeral(cadeira, -221, 0, -90, -90, 0, 1, 0, 90, 90, 90);
-	desenhaGeral(cadeira, -221, 0, -213, -90, 0, 1, 0, 90, 90, 90);
+	glColor3f(1, 1, 1);
+	SetaEscalaTextura(5, 5);
+	desenhaGeralTextura(cadeira, 221, 0, 33, 90, 0, 1, 0, 90, 90, 90, tecido);
+	desenhaGeralTextura(cadeira, 221, 0, -90, 90, 0, 1, 0, 90, 90, 90, tecido);
+	desenhaGeralTextura(cadeira, 221, 0, -213, 90, 0, 1, 0, 90, 90, 90, tecido);
+	desenhaGeralTextura(cadeira, 165, 0, -321, 180, 0, 1, 0, 90, 90, 90, tecido);
+	desenhaGeralTextura(cadeira, 42, 0, -321, 180, 0, 1, 0, 90, 90, 90, tecido);
+	desenhaGeralTextura(cadeira, -81, 0, -321, 180, 0, 1, 0, 90, 90, 90, tecido);
+	desenhaGeralTextura(cadeira, -204, 0, -321, 180, 0, 1, 0, 90, 90, 90, tecido);
+	desenhaGeralTextura(cadeira, -221, 0, 33, -90, 0, 1, 0, 90, 90, 90, tecido);
+	desenhaGeralTextura(cadeira, -221, 0, -90, -90, 0, 1, 0, 90, 90, 90, tecido);
+	desenhaGeralTextura(cadeira, -221, 0, -213, -90, 0, 1, 0, 90, 90, 90, tecido);
 }
 
 void DesenhaObjExtra() {
 	
-	glColor3f(0.9, 0.9, 0);
-
 	glPushMatrix();
 	glTranslatef(0, 297, 0);
 	glRotatef(90, 1, 0, 0);
@@ -373,34 +361,13 @@ void DesenhaObjExtra() {
 	glColor3f(0.90, 0.90, 0.90);
 	desenhaGeral(interruptor, -80, 105, 397.5, -180, 0, 1, 0, 120, 120, 120);
 
-	glColor3f(1, 1, 1);
-	desenhaGeral(lousa, 90, 165, 397.5, -180, 0, 1, 0, 0.5, 0.65, 0.5);
+	// tela da lousa e lousa
+	SetaEscalaTextura(1, 1);
+	desenhaGeralTextura(lousa, 90, 165, 397, 180, 1, 0, 0, 2.5, 1.30, 0.5, telalousa);
+	desenhaGeral(molduralousa, 90, 165, 397.5, -180, 0, 1, 0, 0.5, 0.65, 0.5);
 
 	glColor3f(0.15, 0.15, 0.15);
 	desenhaGeral(lixeira, -60, 0, 380, -180, 0, 1, 0, 120, 120, 120);
-}
-
-void DesenhaEixos() {
-
-	glLineWidth(3.0);
-
-	glColor3f(1.0, 0.0, 0.0);
-	glBegin(GL_LINES);
-	glVertex3f(0.0, 0.0, 0.0);
-	glVertex3f(1000.0, 0.0, 0.0);
-	glEnd();
-
-	glColor3f(0.0, 1.0, 0.0);
-	glBegin(GL_LINES);
-	glVertex3f(0.0, 0.0, 0.0);
-	glVertex3f(0.0, 1000.0, 0.0);
-	glEnd();
-
-	glColor3f(0.0, 0.0, 1.0);
-	glBegin(GL_LINES);
-	glVertex3f(0.0, 0.0, 0.0);
-	glVertex3f(0.0, 0.0, 1000.0);
-	glEnd();
 }
 
 // Desenha toda a cena
@@ -425,34 +392,12 @@ void Desenha(void) {
 	glLightfv(GL_LIGHT0, GL_POSITION, posLuz1);
 	glLightfv(GL_LIGHT1, GL_POSITION, posLuz2);
 	glLightfv(GL_LIGHT2, GL_POSITION, posLuz3);
-	glLightfv(GL_LIGHT3, GL_POSITION, posLuz4);
 
-	glLightfv(GL_LIGHT4, GL_POSITION, posLuz5);
-	glLightfv(GL_LIGHT4, GL_AMBIENT, luzAmb5);
-	glLightfv(GL_LIGHT4, GL_DIFFUSE, luzDif5);
-	glLightfv(GL_LIGHT4, GL_SPECULAR, luzEsp5);
-	glLightfv(GL_LIGHT4, GL_SPOT_DIRECTION, dirLuz5);
-	glLightf(GL_LIGHT4, GL_SPOT_CUTOFF, 40.0);
-	glLightf(GL_LIGHT4, GL_SPOT_EXPONENT, 10.0);
-
-	glLightfv(GL_LIGHT5, GL_POSITION, posLuz6);
-	glLightfv(GL_LIGHT5, GL_AMBIENT, luzAmb6);
-	glLightfv(GL_LIGHT5, GL_DIFFUSE, luzDif6);
-	glLightfv(GL_LIGHT5, GL_SPECULAR, luzEsp6);
-	glLightfv(GL_LIGHT5, GL_SPOT_DIRECTION, dirLuz6);
-	glLightf(GL_LIGHT5, GL_SPOT_CUTOFF, 40.0);
-	glLightf(GL_LIGHT5, GL_SPOT_EXPONENT, 10.0);
-
-	glLightfv(GL_LIGHT6, GL_POSITION, posLuz7);
-	glLightfv(GL_LIGHT6, GL_AMBIENT, luzAmb7);
-	glLightfv(GL_LIGHT6, GL_DIFFUSE, luzDif7);
-	glLightfv(GL_LIGHT6, GL_SPECULAR, luzEsp7);
-	glLightfv(GL_LIGHT6, GL_SPOT_DIRECTION, dirLuz7);
-	glLightf(GL_LIGHT6, GL_SPOT_CUTOFF, 40.0);
-	glLightf(GL_LIGHT6, GL_SPOT_EXPONENT, 10.0);
+	// Luz spot
+	glLightf(GL_LIGHT4, GL_SPOT_CUTOFF, 70.0);
+	glLightf(GL_LIGHT4, GL_SPOT_EXPONENT, 10);
 
 	// Desenha todos os elementos da cena
-	DesenhaEixos();
 	DesenhaSala();
 	DesenhaPorta();
 	DesenhaJanela();
@@ -466,14 +411,6 @@ void Desenha(void) {
 
 	// Faz a troca dos buffers
 	glutSwapBuffers();
-}
-
-// Liga / desliga luzes de acordo com o estado
-void SetaLuzes() {
-	for (int luz = 0 ; luz < 7 ; luz++) {
-		if (luzes[luz]) glEnable(GL_LIGHT0 + luz);
-		else glDisable(GL_LIGHT0 + luz);
-	}
 }
 
 // Gira hélice do ventilador
@@ -506,7 +443,7 @@ void EspecificaParametrosVisualizacao(void)
 
 	// Especifica a projecao perspectiva
 	// (angulo, aspecto, zMin, zMax)
-	gluPerspective(ang_cam, fAspect, 0.1, 5000);
+	gluPerspective(ang_cam, fAspect, 0.1, 1000);
 
 	// Especifica sistema de coordenadas do modelo
 	glMatrixMode(GL_MODELVIEW);
@@ -571,19 +508,11 @@ void TecladoEspecial(int key, int x, int y)
 }
 
 // Funcao callback para eventos de teclado
-void Teclado(unsigned char key, int x, int y) {
+void Teclado(unsigned char key, int x, int y)
+{
 	// Trata as diversas teclas
-	switch (key) {
-		case '1':
-		case '2':
-		case '3':
-		case '4':
-		case '5':
-		case '6':
-		case '7':
-			luzes[key - '1'] = !luzes[key - '1'];
-			SetaLuzes();
-			break;
+	switch (key)
+	{
 	case 'n': // abre a porta
 		if (angle_door < ANGLE_DOOR_MAX)
 		{
@@ -613,15 +542,18 @@ void Teclado(unsigned char key, int x, int y) {
 	case 'g':
 		if (sentido)
 		{
-			sentido = 0;
+			sentido = false;
 		}
 		else
 		{
-			sentido = 1;
+			sentido = true;
 		}
+		break;
 	// Sai do programa
 	case 27: // Libera todos os objetos carregados...
 		LiberaObjeto(NULL);
+		// e materiais
+		LiberaMateriais();
 		exit(1);
 		break;
 	}
@@ -676,19 +608,27 @@ void Inicializa(void)
 	// Define a cor de fundo da janela de visualizacao como preto
 	glClearColor(0, 0, 0, 1);
 
+	// Carrega as texturas
+	parede = CarregaTextura("texturas/parede.jpg", true);
+	chao = CarregaTextura("texturas/chao.jpg", true);
+	teto = CarregaTextura("texturas/teto.jpg", true);
+	tabua = CarregaTextura("texturas/tabua.jpg", true);
+	telalousa = CarregaTextura("texturas/calculo.jpg", true);
+	tecido = CarregaTextura("texturas/tecido.jpg", true);
+	metalico = CarregaTextura("texturas/metalico.jpg", true);
+
+	// Seleciona o modo de aplicacao da textura
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, modo);
+
 	// Ajusta iluminacao
-	glLightfv(GL_LIGHT0, GL_AMBIENT, luzAmbiente);
+	glLightfv(GL_LIGHT0, GL_AMBIENT, luzAmb1);
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, luzDif1);
 	glLightfv(GL_LIGHT0, GL_SPECULAR, luzEsp1);
-	
-	glLightfv(GL_LIGHT1, GL_AMBIENT, luzAmbiente);
+	glLightfv(GL_LIGHT1, GL_AMBIENT, luzAmb1);
 	glLightfv(GL_LIGHT1, GL_DIFFUSE, luzDif2);
-
-	glLightfv(GL_LIGHT2, GL_AMBIENT, luzAmbiente);
+	glLightfv(GL_LIGHT2, GL_AMBIENT, luzAmb1);
 	glLightfv(GL_LIGHT2, GL_DIFFUSE, luzDif3);
-
-	glLightfv(GL_LIGHT3, GL_AMBIENT, luzAmb4);
-	glLightfv(GL_LIGHT3, GL_DIFFUSE, luzDif4);
+	glLightfv(GL_LIGHT3, GL_AMBIENT, luzAmb1);
 
 	// Habilita todas as fontes de luz
 	glEnable(GL_LIGHT0);
@@ -696,21 +636,16 @@ void Inicializa(void)
 	glEnable(GL_LIGHT2);
 	glEnable(GL_LIGHT3);
 	glEnable(GL_LIGHT4);
-	glEnable(GL_LIGHT5);
-	glEnable(GL_LIGHT6);
-
 	glEnable(GL_LIGHTING);
 
 	// Define coeficientes ambiente e difuso
 	// do material
 	GLfloat matAmb[4] = {0.2, 0.2, 0.2, 1};
 	GLfloat matDif[4] = {1, 1, 1, 1};
-	GLfloat matSpec[4] = {1, 1, 1, 1};
 
 	// Material
 	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, matAmb);
 	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, matDif);
-	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, matSpec);
 
 	// Seleciona o modo de GL_COLOR_MATERIAL
 	// faz com que uma cor de material acompanhe a cor atual
@@ -740,14 +675,14 @@ void Inicializa(void)
 	mouse = CarregaObjeto("obj/mouse.obj", false);
 	cadeira = CarregaObjeto("obj/cadeira.obj", false);
 	interruptor = CarregaObjeto("obj/interruptor.obj", false);
-	lousa = CarregaObjeto("obj/lousa.obj", false);
+	molduralousa = CarregaObjeto("obj/lousa.obj", false);
+	lousa = CarregaObjeto("obj/parede.obj", false);
 	lixeira = CarregaObjeto("obj/lixeira.obj", false);
-
-	SetaLuzes();
 }
 
 // Programa Principal
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
 	// Inicilizar a Glut
 	glutInit(&argc, argv);
 

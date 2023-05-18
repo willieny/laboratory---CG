@@ -194,12 +194,10 @@ void DesenhaSala() {
 	desenhaGeralTextura(plano, 0, -0.1, 0, -90, 1, 0, 0, 20, 20, 1, grama);
 }
 
-void DesenhaPorta()
-{
+void DesenhaPorta() {
 	// Desenha a porta
 	SetaEscalaTextura(1, 1);
 	glPushMatrix();
-
 	glTranslatef(-170, 0, 397.5);
 	glScalef(100, 100, 100);
 	glRotatef(-180, 0, 1, 0);
@@ -401,7 +399,8 @@ void DesenhaObjExtra() {
 	glPopMatrix();
 
 	glColor3f(0.90, 0.90, 0.90);
-	desenhaGeral(interruptor, -80, 105, 397.5, -180, 0, 1, 0, 120, 120, 120);
+	SetaEscalaTextura(1, 1);
+	desenhaGeralTextura(interruptor, -80, 105, 397.5, -180, 0, 1, 0, 120, 120, 120, metalico);
 
 	// tela da lousa e lousa
 	SetaEscalaTextura(1, 1);

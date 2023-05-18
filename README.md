@@ -1,4 +1,4 @@
-# Projeto de Computação Gráfica - AB1
+# Projeto de Computação Gráfica
 
 ## Equipe
 
@@ -21,3 +21,20 @@ g++ main.cpp bibutil.cpp myutil.cpp bibutilNoTex.cpp -o main -lGL -lGLU -lglut
 ```
 
 Em seguida, basta rodar o comando `./main` para executar o programa.
+
+# Requisitos da AB1
+
+- [x] Navegação usando o teclado/mouse  permitindo ao usuário visualizar a parte externa e interna do Laboratório;
+- [x] 5 objetos diferentes do laboratório;
+- [x] Janelas: a janela deverá ser aberta e fechada usando o teclado;
+- [x] 1 Porta: A porta deverá ser aberta ou fechada (baixa rotação) através da ação de um botão do teclado.
+- [x] 2 ventiladores de teto rotacionando em baixa velocidade;
+
+# Requisitos da AB2
+
+- [x] Criar a iluminação do Laboratório;
+- [x] 3 Fontes de Luz simulando uma luminária com spot sob as Mesas do Laboratório;
+- [x] Utilizar Iluminação (especular e difusa);
+- [] Aplicar mapeamento de textura em 5 objetos;
+- [x] Criar um modelo de iluminação para simular o efeito noite e dia na modelagem.
+- [x] Refinar a modelagem realizada no primeiro Bimestre;

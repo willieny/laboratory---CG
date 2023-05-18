@@ -70,10 +70,9 @@ GLfloat sentido = 1;
 // Luminosidade base de uma lampada
 #define LOW 0.3
 
-// Define parametros de iluminacao
+// Apontador para material da fonte de luz
 
 // Luz 1: pontual no teto, frente
-GLfloat luzAmb1[4] = {0.1, 0.1, 0.1, 1};   // luz ambiente
 GLfloat luzDif1[4] = {LOW, LOW, LOW, 1.0}; // luz difusa
 GLfloat luzEsp1[4] = {0.0, 0.0, 0.0, 1.0}; // luz especular
 GLfloat posLuz1[4] = {0, 200, 250, 1};	   // posicao da fonte de luz
@@ -86,7 +85,34 @@ GLfloat posLuz2[4] = {0, 200, 0, 1};	   // posicao da fonte de luz
 GLfloat luzDif3[4] = {LOW, LOW, LOW, 1.0}; // luz difusa
 GLfloat posLuz3[4] = {0, 200, -250, 1};	   // posicao da fonte de luz
 
-bool luzes[6] = {true, true, true, false, false};
+// // Luz 4: Sol
+GLfloat luzAmb4[4] = {0.3, 0.3, 0.3, 1.0}; // luz difusa
+GLfloat luzDif4[4] = {0.4, 0.2, 0.0, 1.0}; // luz difusa
+GLfloat posLuz4[4] = {0.4, 0.4, 1, 0};	   // posicao da fonte de luz
+
+GLfloat luzAmb5[4] = {0.2, 0.2, 0.2, 1.0}; // luz ambiente
+GLfloat luzDif5[4] = {1, 1, 1, 1}; // luz difusa
+GLfloat luzEsp5[4] = {0, 0, 0, 1.0}; // luz especular
+GLfloat posLuz5[4] = {250, 150, 33, 1.0};	   // posicao da fonte de luz
+GLfloat dirLuz5[3] = {0, -1, 0};	   // posicao da fonte de luz
+
+GLfloat luzAmb6[4] = {0.2, 0.2, 0.2, 1.0}; // luz ambiente
+GLfloat luzDif6[4] = {1, 1, 1, 1}; // luz difusa
+GLfloat luzEsp6[4] = {0, 0, 0, 1.0}; // luz especular
+GLfloat posLuz6[4] = {-250, 150, 33, 1.0};	   // posicao da fonte de luz
+GLfloat dirLuz6[3] = {0, -1, 0};	   // posicao da fonte de luz
+
+GLfloat luzAmb7[4] = {0.2, 0.2, 0.2, 1.0}; // luz ambiente
+GLfloat luzDif7[4] = {1, 1, 1, 1}; // luz difusa
+GLfloat luzEsp7[4] = {0, 0, 0, 1.0}; // luz especular
+GLfloat posLuz7[4] = {0, 150, 33, 1.0};	   // posicao da fonte de luz
+GLfloat dirLuz7[3] = {0, -1, 0};	   // posicao da fonte de luz
+
+int luz = 0;
+
+GLfloat luzAmbiente[4] = {0.1, 0.1, 0.1, 1};
+
+bool luzes[7] = {true, true, true, false, true, true, true};
 
 // Objetos
 OBJ *plano,
@@ -140,17 +166,19 @@ void DesenhaSala() {
 	desenhaGeral(plano, -257, 100, 400, 180, 0, 1, 0, 0.86, 2, 1);  // direita
 
 	// chão
-	SetaEscalaTextura(8,8);
 	glColor3f(0.80, 0.80, 0.80);
 	desenhaGeral(plano, 0, 0, 0, -90, 1, 0, 0, 6, 8, 1);
+
+	// Grama
+	glColor3f(0.2, 1.0, 0.2);
+	desenhaGeral(plano, 0, -0.1, 0, -90, 1, 0, 0, 20, 20, 1);
 
 	// teto
 	glColor3f(0.90, 0.90, 0.90);
 	desenhaGeral(plano, 0, 300, 0, 90, 1, 0, 0, 6, 8, 1);
 }
 
-void DesenhaPorta()
-{
+void DesenhaPorta() {
 	// Desenha a porta
 	glPushMatrix();
 
@@ -352,6 +380,29 @@ void DesenhaObjExtra() {
 	desenhaGeral(lixeira, -60, 0, 380, -180, 0, 1, 0, 120, 120, 120);
 }
 
+void DesenhaEixos() {
+
+	glLineWidth(3.0);
+
+	glColor3f(1.0, 0.0, 0.0);
+	glBegin(GL_LINES);
+	glVertex3f(0.0, 0.0, 0.0);
+	glVertex3f(1000.0, 0.0, 0.0);
+	glEnd();
+
+	glColor3f(0.0, 1.0, 0.0);
+	glBegin(GL_LINES);
+	glVertex3f(0.0, 0.0, 0.0);
+	glVertex3f(0.0, 1000.0, 0.0);
+	glEnd();
+
+	glColor3f(0.0, 0.0, 1.0);
+	glBegin(GL_LINES);
+	glVertex3f(0.0, 0.0, 0.0);
+	glVertex3f(0.0, 0.0, 1000.0);
+	glEnd();
+}
+
 // Desenha toda a cena
 void Desenha(void) {
 	// Limpa a janela de visualizacao com a cor
@@ -374,12 +425,34 @@ void Desenha(void) {
 	glLightfv(GL_LIGHT0, GL_POSITION, posLuz1);
 	glLightfv(GL_LIGHT1, GL_POSITION, posLuz2);
 	glLightfv(GL_LIGHT2, GL_POSITION, posLuz3);
+	glLightfv(GL_LIGHT3, GL_POSITION, posLuz4);
 
-	// Luz spot
-	glLightf(GL_LIGHT4, GL_SPOT_CUTOFF, 70.0);
-	glLightf(GL_LIGHT4, GL_SPOT_EXPONENT, 10);
+	glLightfv(GL_LIGHT4, GL_POSITION, posLuz5);
+	glLightfv(GL_LIGHT4, GL_AMBIENT, luzAmb5);
+	glLightfv(GL_LIGHT4, GL_DIFFUSE, luzDif5);
+	glLightfv(GL_LIGHT4, GL_SPECULAR, luzEsp5);
+	glLightfv(GL_LIGHT4, GL_SPOT_DIRECTION, dirLuz5);
+	glLightf(GL_LIGHT4, GL_SPOT_CUTOFF, 40.0);
+	glLightf(GL_LIGHT4, GL_SPOT_EXPONENT, 10.0);
+
+	glLightfv(GL_LIGHT5, GL_POSITION, posLuz6);
+	glLightfv(GL_LIGHT5, GL_AMBIENT, luzAmb6);
+	glLightfv(GL_LIGHT5, GL_DIFFUSE, luzDif6);
+	glLightfv(GL_LIGHT5, GL_SPECULAR, luzEsp6);
+	glLightfv(GL_LIGHT5, GL_SPOT_DIRECTION, dirLuz6);
+	glLightf(GL_LIGHT5, GL_SPOT_CUTOFF, 40.0);
+	glLightf(GL_LIGHT5, GL_SPOT_EXPONENT, 10.0);
+
+	glLightfv(GL_LIGHT6, GL_POSITION, posLuz7);
+	glLightfv(GL_LIGHT6, GL_AMBIENT, luzAmb7);
+	glLightfv(GL_LIGHT6, GL_DIFFUSE, luzDif7);
+	glLightfv(GL_LIGHT6, GL_SPECULAR, luzEsp7);
+	glLightfv(GL_LIGHT6, GL_SPOT_DIRECTION, dirLuz7);
+	glLightf(GL_LIGHT6, GL_SPOT_CUTOFF, 40.0);
+	glLightf(GL_LIGHT6, GL_SPOT_EXPONENT, 10.0);
 
 	// Desenha todos os elementos da cena
+	DesenhaEixos();
 	DesenhaSala();
 	DesenhaPorta();
 	DesenhaJanela();
@@ -393,6 +466,14 @@ void Desenha(void) {
 
 	// Faz a troca dos buffers
 	glutSwapBuffers();
+}
+
+// Liga / desliga luzes de acordo com o estado
+void SetaLuzes() {
+	for (int luz = 0 ; luz < 7 ; luz++) {
+		if (luzes[luz]) glEnable(GL_LIGHT0 + luz);
+		else glDisable(GL_LIGHT0 + luz);
+	}
 }
 
 // Gira hélice do ventilador
@@ -425,7 +506,7 @@ void EspecificaParametrosVisualizacao(void)
 
 	// Especifica a projecao perspectiva
 	// (angulo, aspecto, zMin, zMax)
-	gluPerspective(ang_cam, fAspect, 0.1, 1000);
+	gluPerspective(ang_cam, fAspect, 0.1, 5000);
 
 	// Especifica sistema de coordenadas do modelo
 	glMatrixMode(GL_MODELVIEW);
@@ -490,11 +571,19 @@ void TecladoEspecial(int key, int x, int y)
 }
 
 // Funcao callback para eventos de teclado
-void Teclado(unsigned char key, int x, int y)
-{
+void Teclado(unsigned char key, int x, int y) {
 	// Trata as diversas teclas
-	switch (key)
-	{
+	switch (key) {
+		case '1':
+		case '2':
+		case '3':
+		case '4':
+		case '5':
+		case '6':
+		case '7':
+			luzes[key - '1'] = !luzes[key - '1'];
+			SetaLuzes();
+			break;
 	case 'n': // abre a porta
 		if (angle_door < ANGLE_DOOR_MAX)
 		{
@@ -588,14 +677,18 @@ void Inicializa(void)
 	glClearColor(0, 0, 0, 1);
 
 	// Ajusta iluminacao
-	glLightfv(GL_LIGHT0, GL_AMBIENT, luzAmb1);
+	glLightfv(GL_LIGHT0, GL_AMBIENT, luzAmbiente);
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, luzDif1);
 	glLightfv(GL_LIGHT0, GL_SPECULAR, luzEsp1);
-	glLightfv(GL_LIGHT1, GL_AMBIENT, luzAmb1);
+	
+	glLightfv(GL_LIGHT1, GL_AMBIENT, luzAmbiente);
 	glLightfv(GL_LIGHT1, GL_DIFFUSE, luzDif2);
-	glLightfv(GL_LIGHT2, GL_AMBIENT, luzAmb1);
+
+	glLightfv(GL_LIGHT2, GL_AMBIENT, luzAmbiente);
 	glLightfv(GL_LIGHT2, GL_DIFFUSE, luzDif3);
-	glLightfv(GL_LIGHT3, GL_AMBIENT, luzAmb1);
+
+	glLightfv(GL_LIGHT3, GL_AMBIENT, luzAmb4);
+	glLightfv(GL_LIGHT3, GL_DIFFUSE, luzDif4);
 
 	// Habilita todas as fontes de luz
 	glEnable(GL_LIGHT0);
@@ -603,16 +696,21 @@ void Inicializa(void)
 	glEnable(GL_LIGHT2);
 	glEnable(GL_LIGHT3);
 	glEnable(GL_LIGHT4);
+	glEnable(GL_LIGHT5);
+	glEnable(GL_LIGHT6);
+
 	glEnable(GL_LIGHTING);
 
 	// Define coeficientes ambiente e difuso
 	// do material
 	GLfloat matAmb[4] = {0.2, 0.2, 0.2, 1};
 	GLfloat matDif[4] = {1, 1, 1, 1};
+	GLfloat matSpec[4] = {1, 1, 1, 1};
 
 	// Material
 	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, matAmb);
 	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, matDif);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, matSpec);
 
 	// Seleciona o modo de GL_COLOR_MATERIAL
 	// faz com que uma cor de material acompanhe a cor atual
@@ -644,11 +742,12 @@ void Inicializa(void)
 	interruptor = CarregaObjeto("obj/interruptor.obj", false);
 	lousa = CarregaObjeto("obj/lousa.obj", false);
 	lixeira = CarregaObjeto("obj/lixeira.obj", false);
+
+	SetaLuzes();
 }
 
 // Programa Principal
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
 	// Inicilizar a Glut
 	glutInit(&argc, argv);
 
